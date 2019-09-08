@@ -2,6 +2,7 @@ local Point = require "point"
 local Object = require "classic"
 local Actor = Object:extend()
 Actor.enabled = true
+Actor.count = 1
 Actor.radius = 0
 Actor.tags = {}
 
@@ -36,8 +37,10 @@ function Actor:update()
 end
 
 function Actor:canHit(entity)
-  if self.inventory and self.inventory.handslot and entity.tags.takesDamageFrom then
-    for handslotTag, _ in pairs(self.inventory.handslot.tags) do
+  if not entity.takeHit then return false end
+
+  if self.inventory and self.inventory:inHand() and entity.tags.takesDamageFrom then
+    for handslotTag, _ in pairs(self.inventory:inHand().tags) do
       if entity.tags.takesDamageFrom[handslotTag] then
         return true
       end

@@ -4,6 +4,33 @@ local Point = require "point"
 local ent = require "entities"
 local shaders = require "shaders"
 
+local MouseEvent = Object:extend()
+function MouseEvent:new(type, x, y, attr)
+  self.type = type
+  self.x = x
+  self.y = y
+  for k, v in pairs(attr) do
+    self[k] = v
+  end
+  self.halted = false
+end
+
+function MouseEvent:halt()
+  self.halted = true
+end
+
+function MouseEvent:callFunc(func, ...)
+  if not self.halted then
+    func(self, ...)
+  end
+end
+
+function MouseEvent:callMethod(obj, methodName, ...)
+  if not self.halted then
+    obj[methodName](obj, self, ...)
+  end
+end
+
 local World = Object:extend()
 
 function World:new()
@@ -25,14 +52,15 @@ function World:update(dt)
 
   self:dumpTheDead()
   self:fixCollisions()
-  self.camera:set(self.player.pos)
+  self.camera:follow(self.player.pos)
+  self.camera:update(dt)
 end
 
 function World:draw()
   love.graphics.clear(0.0, 59.0/255.0, 111.0/255.0, 1.0)
 
   love.graphics.push()
-  self.camera:set(self.player.pos)
+  self.camera:apply()
 
   local x, y = love.mouse.getPosition()
   local mousePos = self.camera:s2w(Point(x, y))
@@ -49,15 +77,21 @@ function World:draw()
 
   love.graphics.pop()
 
-  self.player.inventory:draw()
+  self.player:drawAbsolute()
   love.graphics.print("FPS: " .. love.timer.getFPS(), 10, 10)
 end
 
 function World:mousepressed(x, y, button, istouch, presses)
+  local e = MouseEvent("click", x, y, {button = button, istouch = istouch, presses = presses})
+  e:callMethod(self.player.inventory, "processMouseEvent")
+  e:callMethod(self, "handleMouseClick")
+end
+
+function World:handleMouseClick(e)
   if self.hoveringEntity then
     self.player:hit(self.hoveringEntity)
   else
-    self.player:move_to(self.camera:s2w(Point(x, y)))
+    self.player:move_to(self.camera:s2w(Point(e.x, e.y)))
   end
 end
 

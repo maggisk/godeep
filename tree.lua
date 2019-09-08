@@ -4,7 +4,7 @@ local Image = require "image"
 
 local Tree = Actor:extend()
 Tree.radius = 25
-Tree.tags = {tree = true, takesDamageFrom = {treecutter=1}}
+Tree.tags = {tree = true, takesDamageFrom = {treecutter = true}}
 
 local image = Image("resources/treeshake.png", {frames = 7, duration = 0.3})
 
@@ -25,8 +25,8 @@ end
 
 function Tree:takeHit(from, updateArgs)
   local damage = from.tags.treecutter
-  if damage == nil or from.inventory.handslot.tags.treecutter > damage then
-    damage = from.inventory.handslot.tags.treecutter
+  if damage == nil or from.inventory:inHand().tags.treecutter > damage then
+    damage = from.inventory:inHand().tags.treecutter
   end
 
   self.hp = self.hp - damage
@@ -34,6 +34,14 @@ function Tree:takeHit(from, updateArgs)
     self.dead = true
   else
     self.image:animate()
+  end
+end
+
+function Tree:attemptToHit(player)
+  if player.inventory:inHand() then
+    player:say("That's not great tool to cut down a tree!")
+  else
+    player:say("I can't cut down a tree with my bare hands!")
   end
 end
 

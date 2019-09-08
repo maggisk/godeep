@@ -1,10 +1,11 @@
 local World = require "world"
 
-local world = World()
+local world
 
 function love.load()
   love.window.setMode(1280, 720)
-  love.window.setFullscreen(true)
+  --love.window.setFullscreen(true)
+  world = World()
 end
 
 function love.update(dt)

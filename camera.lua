@@ -4,11 +4,19 @@ local Point = require "point"
 
 function Camera:new()
   self.pos = Point(0, 0)
+  self.target = Point(0, 0)
 end
 
-function Camera:set(p)
-  self.pos:set(p)
-  love.graphics.translate(-p.x + love.graphics.getWidth() / 2, -p.y + love.graphics.getHeight() / 2)
+function Camera:follow(p)
+  self.target:set(p)
+end
+
+function Camera:update(dt)
+  self.pos:add(self.target:copy():subtract(self.pos):multiply(dt * 8))
+end
+
+function Camera:apply()
+  love.graphics.translate(-self.pos.x + love.graphics.getWidth() / 2, -self.pos.y + love.graphics.getHeight() / 2)
 end
 
 -- screen coordinates to world coordinates

@@ -5,6 +5,8 @@ local Image = require "image"
 
 local direction = { up = 1, down = 2, left = 3, right = 4 }
 
+local font = love.graphics.newFont(20)
+
 function direction:from_point(p)
   if p.x <= -math.abs(p.y) then
     return direction.left
@@ -36,10 +38,18 @@ function Player:new(x, y)
   self.direction = direction.down
   self.action = {k = "idle"}
   self.inventory = Inventory()
+  self.text = ""
+  self.textTTL = -1
+  self.swingTTL = -1
 end
 
 function Player:getImage()
   return images[self.direction]
+end
+
+function Player:say(text, ttl)
+  self.text = text
+  self.textTTL = ttl or 3
 end
 
 function Player:move_to(p)
@@ -48,10 +58,19 @@ function Player:move_to(p)
 end
 
 function Player:hit(obj)
-  self.action = {k = "hit", target = obj}
+  if obj.weight or self:canHit(obj) then
+    self.action = {k = "hit", target = obj}
+  elseif obj.attemptToHit then
+    obj:attemptToHit(self)
+  else
+    self:say("I can't do that")
+  end
 end
 
 function Player:update(args)
+  self.textTTL = self.textTTL - args.dt
+  self.swingTTL = self.swingTTL - args.dt
+
   local kbm = Point(0, 0)
   if love.keyboard.isDown("left", "a") then
     kbm.x = kbm.x - 1
@@ -86,8 +105,9 @@ function Player:update(args)
     if self.pos:distanceTo(self.action.target.pos) <= self.radius + self.action.target.radius then
       if self.action.target.weight then
         self.inventory:addOne(self.action.target)
-      elseif self.action.target.takeHit and self:canHit(self.action.target) then
+      elseif self:canHit(self.action.target) and self.swingTTL <= 0 then
         self.action.target:takeHit(self, args)
+        self.swingTTL = self.inventory:inHand().tags.swingTime
       end
       self.action = {k = "idle"}
     end
@@ -108,6 +128,25 @@ end
 
 function Player:draw()
   images[self.direction]:draw(self.pos)
+end
+
+function Player:drawAbsolute()
+  if self.textTTL > 0 then
+    local tmpFont = love.graphics.getFont()
+    love.graphics.setFont(font)
+    local textWidth = font:getWidth(self.text)
+    local textHeight = font:getHeight()
+    local w, h = love.graphics.getDimensions()
+    local x = w / 2 - textWidth / 2
+    local y = h / 6
+    love.graphics.setColor(0, 0, 0, 0.5)
+    love.graphics.rectangle("fill", x - 10, y - 10, textWidth + 20, textHeight + 20, 10)
+    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.print(self.text, x, y)
+    love.graphics.setFont(tmpFont)
+  end
+
+  self.inventory:draw()
 end
 
 return Player
