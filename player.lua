@@ -28,6 +28,7 @@ local SPEED = 200 -- pixels per second
 
 local Player = Actor:extend()
 Player.radius = 10
+Player.tags = {animal = true}
 
 function Player:new(x, y)
   Player.super.new(self)
@@ -85,8 +86,8 @@ function Player:update(args)
     if self.pos:distanceTo(self.action.target.pos) <= self.radius + self.action.target.radius then
       if self.action.target.weight then
         self.inventory:addOne(self.action.target)
-      elseif self.action.target.take_hit then
-        self.action.target:take_hit(args)
+      elseif self.action.target.takeHit and self:canHit(self.action.target) then
+        self.action.target:takeHit(self, args)
       end
       self.action = {k = "idle"}
     end
@@ -106,7 +107,6 @@ function Player:_moveCloserTo(p, speed)
 end
 
 function Player:draw()
-  --love.graphics.circle("fill", self.pos.x, self.pos.y, self.radius)
   images[self.direction]:draw(self.pos)
 end
 

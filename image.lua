@@ -1,6 +1,5 @@
 local Object = require "classic"
 local Image = Object:extend()
-local U = require "underscore"
 
 function Image:new(path, options)
   assert(path:len() > 0)

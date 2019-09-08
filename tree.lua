@@ -4,14 +4,14 @@ local Image = require "image"
 
 local Tree = Actor:extend()
 Tree.radius = 25
-Tree.tags = {tree = true, takesDamageFrom = {"treecutter"}}
+Tree.tags = {tree = true, takesDamageFrom = {treecutter=1}}
 
 local image = Image("resources/treeshake.png", {frames = 7, duration = 0.3})
 
 function Tree:new(x, y)
   Tree.super.new(self)
   self.pos = Point(x, y)
-  self.hp = 5
+  self.hp = 10
   self.image = image:copy()
 end
 
@@ -23,8 +23,13 @@ function Tree:draw()
   self.image:draw(self.pos)
 end
 
-function Tree:take_hit(updateArgs)
-  self.hp = self.hp - 1
+function Tree:takeHit(from, updateArgs)
+  local damage = from.tags.treecutter
+  if damage == nil or from.inventory.handslot.tags.treecutter > damage then
+    damage = from.inventory.handslot.tags.treecutter
+  end
+
+  self.hp = self.hp - damage
   if self.hp <= 0 then
     self.dead = true
   else

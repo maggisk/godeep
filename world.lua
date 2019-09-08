@@ -23,7 +23,7 @@ function World:update(dt)
     self.entities[i]:update(args)
   end
 
-  self:clearTheDead()
+  self:dumpTheDead()
   self:fixCollisions()
   self.camera:set(self.player.pos)
 end
@@ -69,10 +69,10 @@ function World:collectVisibleEntities(threshold)
   for i, e in ipairs(self.entities) do
     local image = e:getImage()
     if e.enabled and
-       e.pos.x + threshold + e:getImage():getWidth() / 2 > left and
-       e.pos.x - threshold - e:getImage():getWidth() / 2 < right and
+       e.pos.x + threshold + image:getWidth() / 2 > left and
+       e.pos.x - threshold - image:getWidth() / 2 < right and
        e.pos.y + threshold > top and
-       e.pos.y - threshold - e:getImage():getHeight() then
+       e.pos.y - threshold - image:getHeight() then
       table.insert(self.visibleEntities, e)
     end
   end
@@ -96,8 +96,7 @@ function World:setHoveringEntity()
   end
 end
 
-function World:clearTheDead()
-  -- remove the dead in O(n + nDead) time
+function World:dumpTheDead()
   local insertAt = 1
   for i, obj in ipairs(self.entities) do
     if not obj.dead then

@@ -5,14 +5,20 @@ function Inventory:new()
   self.weight = 0.0
   self.capacity = 100.0
   self.items = {}
+  self.handslot = nil
+  self.headslot = nil
 end
 
 function Inventory:addOne(item)
   item.enabled = false
   item.pos.x = 0
   item.pos.y = 0
-  self.weight = self.weight + item.weight
-  table.insert(self.items, item)
+  if self.handslot == nil and item.tags.inhand then
+    self.handslot = item
+  else
+    self.weight = self.weight + item.weight
+    table.insert(self.items, item)
+  end
 end
 
 function Inventory:draw()

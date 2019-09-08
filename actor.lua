@@ -35,4 +35,16 @@ end
 function Actor:update()
 end
 
+function Actor:canHit(entity)
+  if self.inventory and self.inventory.handslot and entity.tags.takesDamageFrom then
+    for handslotTag, _ in pairs(self.inventory.handslot.tags) do
+      if entity.tags.takesDamageFrom[handslotTag] then
+        return true
+      end
+    end
+  end
+
+  return entity.tags.animal
+end
+
 return Actor
