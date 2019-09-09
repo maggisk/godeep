@@ -47,18 +47,4 @@ end
 function Actor:update()
 end
 
-function Actor:canHit(entity)
-  if not entity.takeHit then return false end
-
-  if self.inventory and self.inventory:get("hand") and entity.tags.takesDamageFrom then
-    for handslotTag, _ in pairs(self.inventory:get("hand").tags) do
-      if entity.tags.takesDamageFrom[handslotTag] then
-        return true
-      end
-    end
-  end
-
-  return entity.tags.animal
-end
-
 return Actor

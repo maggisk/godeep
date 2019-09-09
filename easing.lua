@@ -1,4 +1,6 @@
-function shake(count, duration, total)
+local module = {}
+
+function module.shake(count, duration, total)
   local p = (duration / total * count) % 1
   if p < 0.25 then
     return p * 4
@@ -11,6 +13,4 @@ function shake(count, duration, total)
   end
 end
 
-return {
-  shake = shake,
-}
+return module

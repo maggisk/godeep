@@ -3,6 +3,7 @@ local Point = require "point"
 local Inventory = require "inventory"
 local Image = require "image"
 local MessageBox = require "messagebox"
+local rules = require "gamerules"
 
 local direction = { up = 1, down = 2, left = 3, right = 4 }
 
@@ -27,9 +28,9 @@ local images = {
 
 local SPEED = 200 -- pixels per second
 
-local Player = Actor:extend("Player")
+local Player = Actor:extend()
 Player.radius = 10
-Player.tags = {animal = true}
+Player.tags = {type = "player", alive = true}
 
 function Player:new(x, y)
   Player.super.new(self)
@@ -38,6 +39,7 @@ function Player:new(x, y)
   self.action = {k = "idle"}
   self.inventory = Inventory()
   self.swingTTL = -1
+  self.hitpoints = 1000
   self.mb = MessageBox()
 end
 
@@ -55,7 +57,7 @@ function Player:moveTo(p)
 end
 
 function Player:hit(obj)
-  if obj.weight or self:canHit(obj) then
+  if rules.canPickUp(self, obj) or rules.canAttack(self, obj) then
     self.action = {k = "hit", target = obj}
   elseif obj.attemptToHit then
     obj:attemptToHit(self)
@@ -103,11 +105,10 @@ function Player:update(args)
     self:_faceTowards(self.action.target.pos)
     self:_moveCloserTo(self.action.target.pos, speed)
     if self.pos:distanceTo(self.action.target.pos) <= self.radius + self.action.target.radius then
-      if self.action.target.weight then
+      if rules.canPickUp(self, self.action.target) then
         self.inventory:add(self.action.target)
-      elseif self:canHit(self.action.target) and self.swingTTL <= 0 then
-        self.action.target:takeHit(self, args)
-        self.swingTTL = self.inventory:get("hand").tags.swingTime
+      elseif rules.canAttack(self, self.action.target) and self.swingTTL <= 0 then
+        rules.doAttack(self, self.action.target)
       end
       self.action = {k = "idle"}
     end

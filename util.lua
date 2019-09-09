@@ -1,7 +1,9 @@
-local M = {}
+local module = {}
 
-function M.clamp(v, lower, upper)
+function module.clamp(v, lower, upper)
   return math.max(lower, math.min(upper, v))
 end
 
-return M
+function module.toboolean(v)
+  return not not v
+end

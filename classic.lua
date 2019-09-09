@@ -16,7 +16,7 @@ function Object:new()
 end
 
 
-function Object:extend(clsname)
+function Object:extend()
   local cls = {}
   for k, v in pairs(self) do
     if k:find("__") == 1 then
@@ -25,7 +25,6 @@ function Object:extend(clsname)
   end
   cls.__index = cls
   cls.super = self
-  cls.clsname = clsname
   setmetatable(cls, self)
   return cls
 end

@@ -2,10 +2,13 @@ local U = require "underscore"
 local UIBox = require "uibox"
 local Point = require "point"
 local Object = require "classic"
-local Inventory = Object:extend()
 
 local HEIGHT = 60
 local PADDING = 10
+
+local Inventory = Object:extend()
+
+Inventory.WEARABLE_SLOTS = {"hand", "head", "body"}
 
 function Inventory:new()
   self.capacity = 100
@@ -24,7 +27,7 @@ function Inventory:new()
 
   self.uiboxes = {}
   for i = 1, 20 do
-    self:_addBox(({"hand", "head", "body"})[i])
+    self:_addBox(Inventory.WEARABLE_SLOTS[i])
   end
 end
 
