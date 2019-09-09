@@ -35,7 +35,7 @@ local World = Object:extend()
 
 function World:new()
   self.player = ent.Player(0, 0)
-  self.entities = {self.player, ent.Tree(100, 100), ent.Axe(400, 200)}
+  self.entities = {self.player, ent.Tree(100, 100), ent.Axe(400, 200), ent.Axe(400, 150), ent.Axe(400, 100)}
   self.visibleEntities = {}
   self.hoveringEntity = nil
   self.camera = Camera()
@@ -91,7 +91,7 @@ function World:handleMouseClick(e)
   if self.hoveringEntity then
     self.player:hit(self.hoveringEntity)
   else
-    self.player:move_to(self.camera:s2w(Point(e.x, e.y)))
+    self.player:moveTo(self.camera:s2w(Point(e.x, e.y)))
   end
 end
 

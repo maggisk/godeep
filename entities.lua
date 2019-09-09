@@ -26,5 +26,6 @@ end
 return {
   Player = require "player",
   Tree = require "tree",
-  Axe = create("Axe", "resources/axe.png", {weight = 5, pathable = true, tags = {inhand = true, treecutter = 2, swingTime = 0.3}}),
+  Axe = create("Axe", "resources/axe.png", {weight = 5, pathable = true, durability = 50,
+    tags = {durability = 50, inhand = true, treecutter = 2, swingTime = 0.3}}),
 }

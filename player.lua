@@ -2,12 +2,11 @@ local Actor = require "actor"
 local Point = require "point"
 local Inventory = require "inventory"
 local Image = require "image"
+local MessageBox = require "messagebox"
 
 local direction = { up = 1, down = 2, left = 3, right = 4 }
 
-local font = love.graphics.newFont(20)
-
-function direction:from_point(p)
+function direction:fromPoint(p)
   if p.x <= -math.abs(p.y) then
     return direction.left
   elseif p.x >= math.abs(p.y) then
@@ -28,7 +27,7 @@ local images = {
 
 local SPEED = 200 -- pixels per second
 
-local Player = Actor:extend()
+local Player = Actor:extend("Player")
 Player.radius = 10
 Player.tags = {animal = true}
 
@@ -38,9 +37,8 @@ function Player:new(x, y)
   self.direction = direction.down
   self.action = {k = "idle"}
   self.inventory = Inventory()
-  self.text = ""
-  self.textTTL = -1
   self.swingTTL = -1
+  self.mb = MessageBox()
 end
 
 function Player:getImage()
@@ -48,12 +46,11 @@ function Player:getImage()
 end
 
 function Player:say(text, ttl)
-  self.text = text
-  self.textTTL = ttl or 3
+  self.mb:say(text, ttl)
 end
 
-function Player:move_to(p)
-  self.action = {k = "move", to = p}
+function Player:moveTo(p)
+  self.action = {k = "move", to = p, drop = self.inventory:getMouseItem()}
   self:_faceTowards(p)
 end
 
@@ -68,7 +65,7 @@ function Player:hit(obj)
 end
 
 function Player:update(args)
-  self.textTTL = self.textTTL - args.dt
+  self.mb:update(args.dt)
   self.swingTTL = self.swingTTL - args.dt
 
   local kbm = Point(0, 0)
@@ -87,15 +84,18 @@ function Player:update(args)
 
   local speed = SPEED * args.dt
 
-  if math.abs(kbm.x) > 0.5 or math.abs(kbm.y) > 0.5 then
+  if math.abs(kbm.x) == 1 or math.abs(kbm.y) == 1 then
     -- keyboard movement
     self.action = {k = "idle"}
-    self.direction = direction:from_point(kbm)
+    self.direction = direction:fromPoint(kbm)
     self.pos:add(kbm:setLength(speed))
   elseif self.action.k == "move" then
     -- movecommand by mouseclick
     self:_moveCloserTo(self.action.to, speed)
     if self.pos:eq(self.action.to) then
+      if self.action.drop and self.action.drop == self.inventory:getMouseItem() then
+        self.inventory:drop(self.inventory:getMouseItem(), self.pos)
+      end
       self.action = {k = "idle"}
     end
   elseif self.action.k == "hit" then
@@ -104,10 +104,10 @@ function Player:update(args)
     self:_moveCloserTo(self.action.target.pos, speed)
     if self.pos:distanceTo(self.action.target.pos) <= self.radius + self.action.target.radius then
       if self.action.target.weight then
-        self.inventory:addOne(self.action.target)
+        self.inventory:add(self.action.target)
       elseif self:canHit(self.action.target) and self.swingTTL <= 0 then
         self.action.target:takeHit(self, args)
-        self.swingTTL = self.inventory:inHand().tags.swingTime
+        self.swingTTL = self.inventory:get("hand").tags.swingTime
       end
       self.action = {k = "idle"}
     end
@@ -115,7 +115,7 @@ function Player:update(args)
 end
 
 function Player:_faceTowards(pos)
-  self.direction = direction:from_point(pos:copy():subtract(self.pos))
+  self.direction = direction:fromPoint(pos:copy():subtract(self.pos))
 end
 
 function Player:_moveCloserTo(p, speed)
@@ -131,21 +131,7 @@ function Player:draw()
 end
 
 function Player:drawAbsolute()
-  if self.textTTL > 0 then
-    local tmpFont = love.graphics.getFont()
-    love.graphics.setFont(font)
-    local textWidth = font:getWidth(self.text)
-    local textHeight = font:getHeight()
-    local w, h = love.graphics.getDimensions()
-    local x = w / 2 - textWidth / 2
-    local y = h / 6
-    love.graphics.setColor(0, 0, 0, 0.5)
-    love.graphics.rectangle("fill", x - 10, y - 10, textWidth + 20, textHeight + 20, 10)
-    love.graphics.setColor(1, 1, 1, 1)
-    love.graphics.print(self.text, x, y)
-    love.graphics.setFont(tmpFont)
-  end
-
+  self.mb:draw()
   self.inventory:draw()
 end
 

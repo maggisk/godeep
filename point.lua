@@ -1,5 +1,5 @@
 local Object = require 'classic'
-local Point = Object:extend()
+local Point = Object:extend("Point")
 
 function Point:new(x, y)
   self.x = x

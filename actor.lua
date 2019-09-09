@@ -30,6 +30,17 @@ function Actor:isVisibleAt(worldPos)
   return image:isVisibleAt(Point(x, y))
 end
 
+function Actor:merge(other)
+  if self.clsname and self.clsname == other.clsname and self.durability and other.durability then
+    self.durability = self.durability + other.durability
+    self.count = math.ceil(self.durability / self.tags.durability)
+    other.dead = true
+    return true
+  end
+
+  return false
+end
+
 function Actor:draw()
 end
 
@@ -39,8 +50,8 @@ end
 function Actor:canHit(entity)
   if not entity.takeHit then return false end
 
-  if self.inventory and self.inventory:inHand() and entity.tags.takesDamageFrom then
-    for handslotTag, _ in pairs(self.inventory:inHand().tags) do
+  if self.inventory and self.inventory:get("hand") and entity.tags.takesDamageFrom then
+    for handslotTag, _ in pairs(self.inventory:get("hand").tags) do
       if entity.tags.takesDamageFrom[handslotTag] then
         return true
       end
