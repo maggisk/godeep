@@ -5,7 +5,7 @@ local UIBox = Object:extend()
 
 function UIBox:new(parent, x, y, width, height, options)
   self.pos = Point(x, y)
-  self.absolutePos = self.pos:copy()
+  self.absolutePos = Point(x, y)
   self.width = width
   self.height = height
   self.options = options or {}
@@ -18,9 +18,9 @@ function UIBox:new(parent, x, y, width, height, options)
 end
 
 function UIBox:layout()
-  self.absolutePos = self.pos:copy()
+  self.absolutePos:set(self.pos)
   if self.parent then
-    self.absolutePos:add(self.parent.pos)
+    self.absolutePos:add(self.parent.absolutePos)
   end
   for _, child in ipairs(self.children) do
     child:layout()
