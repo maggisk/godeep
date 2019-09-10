@@ -98,10 +98,6 @@ function module.doAttack(a, b)
     -- allow entity to take action in response to getting hit - e.g. start animation
     b:tookHit()
   end
-
-  -- set entity time to live until next swing
-  assert(entity.tags.swingTime ~= nil, "entity is missing a swingTime tag")
-  a.swingTTL = entity.tags.swingTime
 end
 
 function module.canPickUp(a, b)
