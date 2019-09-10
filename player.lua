@@ -32,7 +32,7 @@ local SPEED = 200 -- pixels per second
 local Player = Actor:extend()
 Player.speed = SPEED -- TODO: make dynamic
 Player.radius = 10
-Player.tags = {type = "player", alive = true, swingTime = 0.5, range = 1}
+Player.tags = {type = "player", alive = true, damage = 1, swingTime = 0.5, range = 1}
 
 function Player:new(x, y)
   Player.super.new(self)

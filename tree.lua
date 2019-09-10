@@ -29,7 +29,7 @@ end
 
 function Tree:attemptToHit(player)
   if player.inventory:get("hand") then
-    player:say("Thats the wrong tool!")
+    player:say("That's the wrong tool!")
   else
     player:say("I can't do that with my bare hands!")
   end

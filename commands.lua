@@ -56,7 +56,8 @@ function KeyboardMove:new(movement)
 end
 
 function KeyboardMove:update(entity, dt)
-  entity.pos:add(self.movement:setLength(entity.speed * dt))
+  entity.orientation = self.movement:copy()
+  entity.pos:add(self.movement:copy():setLength(entity.speed * dt))
   return idle
 end
 
