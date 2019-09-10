@@ -1,6 +1,6 @@
 local easing = require "easing"
 local Object = require "classic"
-local MessageBox = Object:extend("MessageBox")
+local SpeechBubble = Object:extend()
 
 local font = love.graphics.newFont(20)
 
@@ -9,21 +9,21 @@ local SHAKE_DISTANCE = 10
 local SHAKE_DURATION = 0.4
 local SHAKE_COUNT = 2
 
-function MessageBox:new()
+function SpeechBubble:new()
   self.text = ""
   self.ttl = -1
   self.duration = 0
   self.shake = false
 end
 
-function MessageBox:say(text, ttl)
+function SpeechBubble:say(text, ttl)
   self.shake = self.ttl > 0 and self.text == text
   self.text = text
   self.ttl = ttl or DEFAULT_TTL
   self.duration = 0
 end
 
-function MessageBox:update(dt)
+function SpeechBubble:update(dt)
   if self.ttl >= 0 then
     self.ttl = self.ttl - dt
     self.duration = self.duration + dt
@@ -31,7 +31,7 @@ function MessageBox:update(dt)
   end
 end
 
-function MessageBox:draw()
+function SpeechBubble:draw()
   if self.ttl < 0 then return end
 
   love.graphics.push()
@@ -46,9 +46,10 @@ function MessageBox:draw()
   local textHeight = font:getHeight()
   local w, h = love.graphics.getDimensions()
   local x = w / 2 - textWidth / 2
-  local y = h / 6
+  local y = h / 2 - 200
   love.graphics.setColor(0, 0, 0, 0.5)
   love.graphics.rectangle("fill", x - 10, y - 10, textWidth + 20, textHeight + 20, 10)
+  love.graphics.polygon("fill", w / 2 - 10, y + textHeight + 10,  w / 2 + 10, y + textHeight + 10, w / 2, y + textHeight + 20)
   love.graphics.setColor(1, 1, 1, 1)
   love.graphics.print(self.text, x, y)
   love.graphics.setFont(tmpFont)
@@ -56,4 +57,4 @@ function MessageBox:draw()
   love.graphics.pop()
 end
 
-return MessageBox
+return SpeechBubble

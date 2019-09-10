@@ -2,7 +2,7 @@ local Actor = require "actor"
 local Point = require "point"
 local Inventory = require "inventory"
 local Image = require "image"
-local MessageBox = require "messagebox"
+local SpeechBubble = require "speechbubble"
 local rules = require "gamerules"
 
 local direction = { up = 1, down = 2, left = 3, right = 4 }
@@ -40,7 +40,7 @@ function Player:new(x, y)
   self.inventory = Inventory()
   self.swingTTL = -1
   self.hitpoints = 1000
-  self.mb = MessageBox()
+  self.speech = SpeechBubble()
 end
 
 function Player:getImage()
@@ -48,7 +48,7 @@ function Player:getImage()
 end
 
 function Player:say(text, ttl)
-  self.mb:say(text, ttl)
+  self.speech:say(text, ttl)
 end
 
 function Player:moveTo(p)
@@ -67,7 +67,7 @@ function Player:hit(obj)
 end
 
 function Player:update(args)
-  self.mb:update(args.dt)
+  self.speech:update(args.dt)
   self.swingTTL = self.swingTTL - args.dt
 
   local kbm = Point(0, 0)
@@ -132,7 +132,7 @@ function Player:draw()
 end
 
 function Player:drawAbsolute()
-  self.mb:draw()
+  self.speech:draw()
   self.inventory:draw()
 end
 
