@@ -100,7 +100,7 @@ function module.doAttack(a, b)
   end
 
   -- set entity time to live until next swing
-  assert(entity.tags.swingTime ~= nil, entity.clsname .. " does not have swingTime tag")
+  assert(entity.tags.swingTime ~= nil, "entity is missing a swingTime tag")
   a.swingTTL = entity.tags.swingTime
 end
 
