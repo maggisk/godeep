@@ -13,19 +13,33 @@ function Tree:new(x, y)
   Tree.super.new(self)
   self.pos = Point(x, y)
   self.hitpoints = 10
-  self.image = image:copy()
+  self.newEntities = {}
+end
+
+function Tree:getImage()
+  return self.image or image
 end
 
 function Tree:update(args)
-  self.image:update(args.dt)
+  if self.image then
+    self.image:update(args.dt)
+  end
 end
 
 function Tree:draw()
-  self.image:draw(self.pos)
+  self:getImage():draw(self.pos)
 end
 
 function Tree:tookHit()
+  self.image = self.image or image:copy()
   self.image:animate()
+end
+
+function Tree:die()
+  local Log = require('entities').Log
+  for i = 1, 4 do
+    table.insert(self.newEntities, Log(self.pos.x + love.math.random(-20, 20), self.pos.y + love.math.random(-20, 20)))
+  end
 end
 
 function Tree:attemptToHit(player)

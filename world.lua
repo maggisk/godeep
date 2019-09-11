@@ -32,12 +32,12 @@ function MouseEvent:callMethod(obj, methodName, ...)
   end
 end
 
-function genTrees(n, world)
+function randomEntities(EntityClass, n, world)
   local i = 0
   while i < n do
-    local tree = ent.Tree(love.math.random(-10000, 10000), love.math.random(-10000, 10000))
-    if #wutil.findCollisions(tree, world.entities) == 0 then
-      world:addEntity(tree)
+    local entity = EntityClass(love.math.random(-10000, 10000), love.math.random(-10000, 10000))
+    if #wutil.findCollisions(entity, world.entities) == 0 then
+      world:addEntity(entity)
       i = i + 1
     end
   end
@@ -60,7 +60,8 @@ function World:new()
   self:addEntity(ent.Axe(40, 100))
   self:addEntity(ent.Axe(100, 60))
 
-  genTrees(10000, self)
+  randomEntities(ent.Tree, 10000, self)
+  randomEntities(ent.Rock, 1000, self)
 end
 
 function World:addEntity(entity)
@@ -83,9 +84,6 @@ function World:addEntity(entity)
 end
 
 function World:update(dt)
-  self:collectVisibleEntities()
-  self:setHoveringEntity()
-
   -- call update on all entities in the world
   local args = {dt = dt, world = self}
   for _, entity in ipairs(self.entities) do
@@ -103,6 +101,10 @@ function World:update(dt)
 
   wutil.clearDeadEntities(self.entities, self.entitiesByTag)
   self:fixCollisions()
+
+  self:collectVisibleEntities()
+  self:setHoveringEntity()
+
   self.camera:follow(self.player.pos)
   self.camera:update(dt)
 end

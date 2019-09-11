@@ -106,7 +106,7 @@ function module.canPickUp(a, b)
 end
 
 function module.canSplitEntity(e)
-  return e and e.count and e.count > 1
+  return e ~= nil and e.count ~= nil and e.count > 1
 end
 
 function module.trySplitEntity(a)
