@@ -6,11 +6,7 @@ Actor.count = 1
 Actor.radius = 0
 Actor.tags = {}
 
-local _eid = 1
-
 function Actor:new()
-  self.eid = _eid
-  _eid = _eid + 1
 end
 
 function Actor:getImage()

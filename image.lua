@@ -61,6 +61,7 @@ end
 function Image:copy()
   return Image(self.path, {
     _image = self.image,
+    _data = self.data,
     frames = self.frames,
     columns = self.columns,
     duration = self.duration,

@@ -3,6 +3,7 @@ local Actor = require "actor"
 local Image = require "image"
 
 local Tree = Actor:extend("Tree")
+Tree.className = "Tree"
 Tree.radius = 25
 Tree.tags = {type = "tree", takesDamageFrom = {treecutter = true}}
 

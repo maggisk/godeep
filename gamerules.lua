@@ -9,7 +9,7 @@ function kill(entity)
   end
 
   -- if the die method did not prevent death, then mark it as dead
-  if entity.hitpoints <= 0 then
+  if not entity.hitpoints or entity.hitpoints <= 0 then
     entity.dead = true
   end
 end
@@ -103,6 +103,31 @@ end
 function module.canPickUp(a, b)
   -- live entities can pick up anything that has weight
   return a.tags.alive and b.weight ~= nil
+end
+
+function module.canSplitEntity(e)
+  return e and e.count and e.count > 1
+end
+
+function module.trySplitEntity(a)
+  if module.canSplitEntity(a) then
+    local b = a.__index(a.pos.x, a.pos.y)
+    a.count = a.count - 1
+    return a, b
+  end
+  return a, nil
+end
+
+function module.canMergeEntities(a, b)
+  return a.__index == b.__index and a.weight and not a.tags.wearable
+end
+
+function module.tryMergeEntities(a, b)
+  if not module.canMergeEntities(a, b) then return false end
+
+  a.count = (a.count or 1) + (b.count or 1)
+  kill(b)
+  return true
 end
 
 return module

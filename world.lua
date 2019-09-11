@@ -3,6 +3,7 @@ local Camera = require "camera"
 local Point = require "point"
 local ent = require "entities"
 local shaders = require "shaders"
+local wutil = require "worldutil"
 
 local MouseEvent = Object:extend()
 function MouseEvent:new(type, x, y, attr)
@@ -31,26 +32,76 @@ function MouseEvent:callMethod(obj, methodName, ...)
   end
 end
 
+function genTrees(n, world)
+  local i = 0
+  while i < n do
+    local tree = ent.Tree(love.math.random(-10000, 10000), love.math.random(-10000, 10000))
+    if #wutil.findCollisions(tree, world.entities) == 0 then
+      world:addEntity(tree)
+      i = i + 1
+    end
+  end
+end
+
 local World = Object:extend()
 
 function World:new()
   self.player = ent.Player(0, 0)
-  self.entities = {self.player, ent.Tree(100, 100), ent.Axe(400, 200), ent.Axe(400, 150), ent.Axe(400, 100)}
+  self.entities = {}
+  self.entitiesByTag = {}
   self.visibleEntities = {}
   self.hoveringEntity = nil
   self.camera = Camera()
+  self.nextEntityId = 0
+
+  self:addEntity(self.player)
+  self:addEntity(ent.Axe(40, 60))
+  self:addEntity(ent.Axe(60, 60))
+  self:addEntity(ent.Axe(40, 100))
+  self:addEntity(ent.Axe(100, 60))
+
+  genTrees(10000, self)
+end
+
+function World:addEntity(entity)
+  assert(entity.eid == nil, "entity can not be added twice")
+  assert(type(entity.tags) == "table", "entity must have a tags table")
+  assert(entity.pos.x)
+  assert(entity.pos.y)
+
+  self.nextEntityId = self.nextEntityId + 1
+  entity.eid = self.nextEntityId
+
+  table.insert(self.entities, entity)
+  for tag, _ in pairs(entity.tags) do
+    if self.entitiesByTag[tag] == nil then
+      self.entitiesByTag[tag] = {}
+    end
+    assert(self.entitiesByTag[tag][entity.eid] == nil)
+    self.entitiesByTag[tag][entity.eid] = entity
+  end
 end
 
 function World:update(dt)
   self:collectVisibleEntities()
   self:setHoveringEntity()
 
+  -- call update on all entities in the world
   local args = {dt = dt, world = self}
-  for i = 1, #self.entities do
-    self.entities[i]:update(args)
+  for _, entity in ipairs(self.entities) do
+    entity:update(args)
   end
 
-  self:dumpTheDead()
+  -- add new entities that may have been created in the last update call
+  for _, entity in ipairs(self.entities) do
+    if entity.newEntities then
+      while entity.newEntities[1] do
+        self:addEntity(table.remove(entity.newEntities))
+      end
+    end
+  end
+
+  wutil.clearDeadEntities(self.entities, self.entitiesByTag)
   self:fixCollisions()
   self.camera:follow(self.player.pos)
   self.camera:update(dt)
@@ -63,16 +114,13 @@ function World:draw()
   self.camera:apply()
 
   local x, y = love.mouse.getPosition()
-  local mousePos = self.camera:s2w(Point(x, y))
+  local mousePos = self.camera:screenToWorldPos(Point(x, y))
 
   for i, obj in pairs(self.visibleEntities) do
-    if obj == self.hoveringEntity then
-      love.graphics.setShader(shaders.brighten)
-      obj:draw()
-      love.graphics.setShader()
-    elseif obj.enabled then
-      obj:draw()
-    end
+    local hovering = obj == self.hoveringEntity
+    if hovering then love.graphics.setShader(shaders.brighten) end
+    obj:draw()
+    if hovering then love.graphics.setShader() end
   end
 
   love.graphics.pop()
@@ -91,7 +139,7 @@ function World:handleMouseClick(e)
   if self.hoveringEntity then
     self.player:hit(self.hoveringEntity)
   else
-    self.player:moveTo(self.camera:s2w(Point(e.x, e.y)))
+    self.player:moveTo(self.camera:screenToWorldPos(Point(e.x, e.y)))
   end
 end
 
@@ -112,14 +160,19 @@ function World:collectVisibleEntities(threshold)
   end
 
   -- sort top to bottom
-  table.sort(self.visibleEntities, function(a, b) return a.pos.y < b.pos.y end)
+  table.sort(self.visibleEntities, function(a, b)
+    if a.pos.y ~= b.pos.y then return a.pos.y < b.pos.y end
+    if a.pos.x ~= b.pos.x then return a.pos.x < b.pos.x end
+    -- compare entity id if x and y coordinates are identical to make the sort stable
+    return a.eid < b.eid
+  end)
 end
 
 function World:setHoveringEntity()
   self.hoveringEntity = nil
 
   local x, y = love.mouse.getPosition()
-  local mousePos = self.camera:s2w(Point(x, y))
+  local mousePos = self.camera:screenToWorldPos(Point(x, y))
 
   for i = #self.visibleEntities, 1, -1 do
     local e = self.visibleEntities[i]
@@ -127,19 +180,6 @@ function World:setHoveringEntity()
       self.hoveringEntity = e
       break
     end
-  end
-end
-
-function World:dumpTheDead()
-  local insertAt = 1
-  for i, obj in ipairs(self.entities) do
-    if not obj.dead then
-      self.entities[insertAt] = obj
-      insertAt = insertAt + 1
-    end
-  end
-  while #self.entities >= insertAt do
-    table.remove(self.entities)
   end
 end
 

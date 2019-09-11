@@ -16,6 +16,10 @@ function love.draw()
   world:draw()
 end
 
+function love.keypressed(key, scancode, isrepeat)
+  --print("keypressed", key, scancode, isrepeat)
+end
+
 function love.mousepressed(x, y, button, istouch, presses)
   world:mousepressed(x, y, button, istouch, pressed)
 end

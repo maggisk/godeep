@@ -40,7 +40,7 @@ function SpeechBubble:draw()
     love.graphics.translate(SHAKE_DISTANCE * easing.shake(SHAKE_COUNT, self.duration, SHAKE_DURATION), 0)
   end
 
-  local tmpFont = love.graphics.getFont()
+  local origFont = love.graphics.getFont()
   love.graphics.setFont(font)
   local textWidth = font:getWidth(self.text)
   local textHeight = font:getHeight()
@@ -52,7 +52,7 @@ function SpeechBubble:draw()
   love.graphics.polygon("fill", w / 2 - 10, y + textHeight + 10,  w / 2 + 10, y + textHeight + 10, w / 2, y + textHeight + 20)
   love.graphics.setColor(1, 1, 1, 1)
   love.graphics.print(self.text, x, y)
-  love.graphics.setFont(tmpFont)
+  love.graphics.setFont(origFont)
 
   love.graphics.pop()
 end

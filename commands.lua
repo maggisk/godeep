@@ -40,7 +40,7 @@ end
 local Move = Object:extend()
 function Move:new(pos, gap)
   self.pos = pos
-  self.gap = gap or 0.001
+  self.gap = (gap or 0) + 0.001
 end
 
 function Move:update(entity, dt)
@@ -63,6 +63,7 @@ end
 
 function KeyboardMove.maybe()
   local kbm = Point(0, 0)
+  -- TODO: allow remapping keys
   if love.keyboard.isDown("left", "a")  then kbm.x = kbm.x - 1 end
   if love.keyboard.isDown("right", "d") then kbm.x = kbm.x + 1 end
   if love.keyboard.isDown("up", "w")    then kbm.y = kbm.y - 1 end
@@ -94,7 +95,6 @@ function Swing:update(entity, dt)
     -- only do the attack if the target hasn't moved out of range while we swang our weapon
     if entity.pos:distanceTo(self.target.pos) <= entity.radius + self.target.radius + self.tool.tags.range then
       rules.doAttack(entity, self.target)
-      self.done = true
     end
   end
 
@@ -123,11 +123,16 @@ end
 
 function _PickUp:update(entity, dt)
   entity.inventory:add(self.target)
+  self.done = true
   return getNext(self)
 end
 
-function PickUp(target)
-  return chain(Move(target.pos, target.radius), _PickUp(target))
+function PickUp(target, source)
+  local gap = source.radius
+  if target.radius > source.radius then
+    gap = target.radius + source.radius
+  end
+  return chain(Move(target.pos, gap), _PickUp(target))
 end
 
 function tryGetTool(entity, slot)

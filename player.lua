@@ -35,11 +35,12 @@ Player.radius = 10
 Player.tags = {type = "player", alive = true, damage = 1, swingTime = 0.5, range = 1}
 
 function Player:new(x, y)
-  Player.super.new(self)
   self.pos = Point(x, y)
+  self.newEntities = {}
   self.orientation = Point(0, 1)
   self.command = commands.idle
   self.inventory = Inventory()
+  self.inventory.newEntities = self.newEntities
   self.hitpoints = 1000
   self.speech = SpeechBubble()
 end
@@ -58,11 +59,11 @@ end
 
 function Player:hit(obj)
   if rules.canPickUp(self, obj) then
-    self.command = commands.PickUp(obj)
+    self.command = commands.PickUp(obj, self)
   elseif rules.canAttack(self, obj) then
     self.command = commands.Attack(obj)
   else
-    self.command = commands.idle
+    -- self.command = commands.idle
     if obj.attemptToHit then
       obj:attemptToHit(self)
     else
@@ -77,6 +78,8 @@ function Player:update(args)
   self.command = commands.KeyboardMove.maybe() or self.command
   self.command = self.command:update(self, args.dt)
   assert(self.command)
+
+  self.inventory:update()
 end
 
 function Player:draw()

@@ -1,6 +1,7 @@
 local U = require "underscore"
 local UIBox = require "uibox"
 local Point = require "point"
+local rules = require "gamerules"
 local Object = require "classic"
 
 local HEIGHT = 60
@@ -12,6 +13,9 @@ Inventory.WEARABLE_SLOTS = {"hand", "head", "body"}
 
 function Inventory:new()
   self.capacity = 100
+
+  -- when we split entities in the inventory
+  self.newEntities = {}
 
   self.state = {
     slots = {},
@@ -55,14 +59,20 @@ function Inventory:add(item)
   if item.tags.wearable and self.state.slots[item.tags.wearable] == nil then
     self.state.slots[item.tags.wearable] = item
   else
-    for key, slotItem in pairs(self.state.slots) do
-      if type(key) == "number" and slotItem.clsname == item.clsname then
-        slotItem:merge(item)
-        return
-      end
-    end
-    table.insert(self.state.slots, item)
+    self:_insert(item)
   end
+end
+
+function Inventory:_insert(item)
+  -- try to merge with existing item
+  for slot, slotItem in pairs(self.state.slots) do
+    if type(slot) == "number" and rules.tryMergeEntities(slotItem, item) then
+      return
+    end
+  end
+
+  -- otherwise insert into first available slot
+  table.insert(self.state.slots, item)
 end
 
 function Inventory:processMouseEvent(e)
@@ -70,10 +80,13 @@ function Inventory:processMouseEvent(e)
 end
 
 function Inventory:handleSlotClick(e, key)
-  if self.state.mouse and self.state.slots[key] and self.state.slots[key]:merge(self.state.mouse) then
-    self.state.mouse = nil
+  if love.keyboard.isDown("lctrl") then
   else
-    self.state.mouse, self.state.slots[key] = self.state.slots[key], self.state.mouse
+    if self.state.mouse and self.state.slots[key] and self.state.slots[key]:merge(self.state.mouse) then
+      self.state.mouse = nil
+    else
+      self.state.mouse, self.state.slots[key] = self.state.slots[key], self.state.mouse
+    end
   end
 end
 
@@ -94,9 +107,25 @@ end
 function Inventory:getWeight()
   local w = 0
   for _, item in pairs(self.state.slots) do
-    w = w + item.weight * item.count
+    w = w + item.weight * (item.count or 1)
   end
   return w
+end
+
+function Inventory:update(args)
+  -- remove items from the inventory that have run out
+  for slot, item in pairs(self.state.slots) do
+    if item.dead then
+      self.state.slots[slot] = nil
+      for i, other in pairs(self.state.slots) do
+        if type(slot) == "string" and type(i) == "number" and item.__index == other.__index then
+          -- replace wearable item what runs out with another identical one in the inventory
+          self.state.slots[slot], self.state.slots[i] = self.state.slots[i], nil
+          break
+        end
+      end
+    end
+  end
 end
 
 function Inventory:draw()
@@ -120,14 +149,29 @@ function Inventory:drawSticky()
   love.graphics.setColor(1, 1, 1, 1)
 end
 
+local font = love.graphics.newFont(20)
+
 function Inventory:drawSlot(slot)
+  local origFont = love.graphics.getFont()
   local item = self.state.slots[slot]
+  local box = self.uiboxes[slot]
+
   if item then
+    if item.durability then
+      local durability = (item.durability / item.tags.durability) % 1
+      if durability == 0 then durability = 1 end
+      love.graphics.setColor(39/255, 174/255, 96/255, 1)
+      love.graphics.rectangle("fill", 0, (1 - durability) * box.height, box.width, durability * box.height)
+      love.graphics.setColor(1, 1, 1, 1)
+    end
     item:getImage():draw(Point(30, 40))
-    if item.count > 1 then
-      love.graphics.print({{0, 0, 0, 1}, item.count}, 2, 2)
+    if not item.tags.wearable then
+      love.graphics.setFont(font)
+      love.graphics.print({{0, 0, 0, 1}, item.count or 1}, 2, 2)
+      love.graphics.setFont(origFont)
     end
   elseif type(slot) == "string" then
+    -- TODO: use icons
     love.graphics.print({{0, 0, 0, 1}, slot}, 15, 5, 0.8)
   end
 end

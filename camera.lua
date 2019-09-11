@@ -19,8 +19,7 @@ function Camera:apply()
   love.graphics.translate(-self.pos.x + love.graphics.getWidth() / 2, -self.pos.y + love.graphics.getHeight() / 2)
 end
 
--- screen coordinates to world coordinates
-function Camera:s2w(p)
+function Camera:screenToWorldPos(p)
   return self.pos:copy():add(p):subtract(Point(love.graphics.getWidth()/2, love.graphics.getHeight()/2))
 end
 
