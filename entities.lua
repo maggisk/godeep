@@ -1,10 +1,11 @@
 local Image = require "image"
 local Point = require "point"
-local Actor = require "actor"
+local Object = require "classic"
 
 -- factory to create simple world entities
 function create(imgpath, clsAttr)
-  local cls = Actor:extend()
+  local cls = Object:extend()
+  cls.radius = 0
   for k, v in pairs(clsAttr or {}) do
     cls[k] = v
   end

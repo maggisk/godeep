@@ -87,11 +87,11 @@ function Image:stop()
   return self
 end
 
-function Image:isVisibleAt(pos)
-  local x = math.floor(pos.x / self.ratio)
-  local y = math.floor(pos.y / self.ratio)
+function Image:isVisibleAt(entityPos, worldPos)
+  local x = math.floor((worldPos.x - (entityPos.x - self:getWidth() / 2)) / self.ratio)
+  local y = math.floor((worldPos.y - (entityPos.y - self:getHeight()   )) / self.ratio)
 
-  if x < 0 or pos.x >= self.width or pos.y < 0 or pos.y >= self.height then
+  if x < 0 or x >= self.width or y < 0 or y >= self.height then
     return false
   end
 

@@ -1,6 +1,7 @@
 local Point = require "point"
 local Image = require "image"
-local Actor = require "actor"
+local Object = require "classic"
+local properties = require "properties"
 
 local images = {
   Image("resources/rock-crack-6.png"),
@@ -12,7 +13,8 @@ local images = {
   Image("resources/rock.png"),
 }
 
-local Rock = Actor:extend()
+local Rock = Object:extend()
+properties.getters(Rock, {image = "getImage"})
 
 Rock.radius = 75
 Rock.tags = {type = "rock", takesDamageFrom = {treecutter = true}}
@@ -27,7 +29,7 @@ function Rock:getImage()
 end
 
 function Rock:draw()
-  images[self.hitpoints]:draw(self.pos)
+  self.image:draw(self.pos)
 end
 
 return Rock

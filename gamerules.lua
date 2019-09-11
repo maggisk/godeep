@@ -111,7 +111,7 @@ end
 
 function module.trySplitEntity(a)
   if module.canSplitEntity(a) then
-    local b = a.__index(a.pos.x, a.pos.y)
+    local b = getmetatable(a)(a.pos.x, a.pos.y)
     a.count = a.count - 1
     return a, b
   end
@@ -119,7 +119,7 @@ function module.trySplitEntity(a)
 end
 
 function module.canMergeEntities(a, b)
-  return a.__index == b.__index and a.weight and not a.tags.wearable
+  return getmetatable(a) == getmetatable(b) and a.weight and not a.tags.wearable
 end
 
 function module.tryMergeEntities(a, b)

@@ -1,4 +1,5 @@
-local Actor = require "actor"
+local Object = require "classic"
+local properties = require "properties"
 local Point = require "point"
 local Inventory = require "inventory"
 local Image = require "image"
@@ -29,7 +30,8 @@ local images = {
 
 local SPEED = 200 -- pixels per second
 
-local Player = Actor:extend()
+local Player = Object:extend()
+properties.getters(Player, {image = "getImage"})
 Player.speed = SPEED -- TODO: make dynamic
 Player.radius = 10
 Player.tags = {type = "player", alive = true, damage = 1, swingTime = 0.5, range = 1}

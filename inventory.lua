@@ -91,15 +91,14 @@ function Inventory:handleSlotClick(e, key)
 end
 
 function Inventory:drop(item, pos)
-  item.enabled = true
-  item.pos:set(pos)
-
   if self.state.mouse and self.state.mouse == item then
+    item.enabled = true
+    item.pos:set(pos)
     self.state.mouse = nil
   end
-  for k, v in pairs(self.state.slots) do
-    if v.enabled then
-      self.state.slots[k] = nil
+  for slot, item in pairs(self.state.slots) do
+    if item.enabled ~= false then
+      self.state.slots[slot] = nil
     end
   end
 end
@@ -113,17 +112,19 @@ function Inventory:getWeight()
 end
 
 function Inventory:update(args)
-  -- remove items from the inventory that have run out
   for slot, item in pairs(self.state.slots) do
     if item.dead then
+      -- remove item from the inventory that has run out
       self.state.slots[slot] = nil
       for i, other in pairs(self.state.slots) do
-        if type(slot) == "string" and type(i) == "number" and item.__index == other.__index then
-          -- replace wearable item what runs out with another identical one in the inventory
+        if type(slot) == "string" and type(i) == "number" and getmetatable(item) == getmetatable(other) then
+          -- replace wearable item that runs out with another identical one in the inventory
           self.state.slots[slot], self.state.slots[i] = self.state.slots[i], nil
           break
         end
       end
+    elseif item.update then
+      item:update(args)
     end
   end
 end
@@ -133,7 +134,7 @@ function Inventory:draw()
   self.bar:draw()
 
   if self.state.mouse then
-    self.state.mouse:getImage():draw(Point(love.mouse.getX(), love.mouse.getY() + self.state.mouse:getImage():getHeight() / 2))
+    self.state.mouse.image:draw(Point(love.mouse.getX(), love.mouse.getY() + self.state.mouse.image:getHeight() / 2))
   end
 end
 
@@ -164,7 +165,7 @@ function Inventory:drawSlot(slot)
       love.graphics.rectangle("fill", 0, (1 - durability) * box.height, box.width, durability * box.height)
       love.graphics.setColor(1, 1, 1, 1)
     end
-    item:getImage():draw(Point(30, 40))
+    item.image:draw(Point(30, 40))
     if not item.tags.wearable then
       love.graphics.setFont(font)
       love.graphics.print({{0, 0, 0, 1}, item.count or 1}, 2, 2)

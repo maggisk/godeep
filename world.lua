@@ -87,7 +87,9 @@ function World:update(dt)
   -- call update on all entities in the world
   local args = {dt = dt, world = self}
   for _, entity in ipairs(self.entities) do
-    entity:update(args)
+    if entity.update and entity.enabled ~= false then
+      entity:update(args)
+    end
   end
 
   -- add new entities that may have been created in the last update call
@@ -118,11 +120,13 @@ function World:draw()
   local x, y = love.mouse.getPosition()
   local mousePos = self.camera:screenToWorldPos(Point(x, y))
 
-  for i, obj in pairs(self.visibleEntities) do
-    local hovering = obj == self.hoveringEntity
-    if hovering then love.graphics.setShader(shaders.brighten) end
-    obj:draw()
-    if hovering then love.graphics.setShader() end
+  for i, entity in pairs(self.visibleEntities) do
+    if entity.draw then
+      local hovering = entity == self.hoveringEntity
+      if hovering then love.graphics.setShader(shaders.brighten) end
+      entity:draw()
+      if hovering then love.graphics.setShader() end
+    end
   end
 
   love.graphics.pop()
@@ -151,8 +155,8 @@ function World:collectVisibleEntities(threshold)
 
   local left, top, right, bottom = self.camera:visibleRect()
   for i, e in ipairs(self.entities) do
-    local image = e:getImage()
-    if e.enabled and
+    local image = e.image
+    if e.enabled ~= false and
        e.pos.x + threshold + image:getWidth() / 2 > left and
        e.pos.x - threshold - image:getWidth() / 2 < right and
        e.pos.y + threshold > top and
@@ -178,7 +182,7 @@ function World:setHoveringEntity()
 
   for i = #self.visibleEntities, 1, -1 do
     local e = self.visibleEntities[i]
-    if e ~= self.player and e:isVisibleAt(mousePos) then
+    if e ~= self.player and e.image:isVisibleAt(e.pos, mousePos) then
       self.hoveringEntity = e
       break
     end
