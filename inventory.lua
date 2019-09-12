@@ -79,14 +79,24 @@ function Inventory:processMouseEvent(e)
   e:callMethod(self.bar, "processMouseEvent")
 end
 
-function Inventory:handleSlotClick(e, key)
+function Inventory:handleSlotClick(event, slot)
+  local item = self.state.slots[slot]
+
+  if self.state.mouse then print(rules.canMergeEntities(self.state.mouse, item)) end
+
   if love.keyboard.isDown("lctrl") then
-  else
-    if self.state.mouse and self.state.slots[key] and self.state.slots[key]:merge(self.state.mouse) then
-      self.state.mouse = nil
-    else
-      self.state.mouse, self.state.slots[key] = self.state.slots[key], self.state.mouse
+    if self.state.mouse == nil or rules.canMergeEntities(self.state.mouse, item) then
+      local item, other = rules.trySplitEntity(item)
+      if self.state.mouse == nil then
+        self.state.mouse = other
+      else
+        rules.tryMergeEntities(self.state.mouse, other or item)
+      end
     end
+  elseif self.state.mouse and item and rules.tryMergeEntities(item, self.state.mouse) then
+    self.state.mouse = nil
+  else
+    self.state.mouse, self.state.slots[slot] = item, self.state.mouse
   end
 end
 
@@ -112,6 +122,10 @@ function Inventory:getWeight()
 end
 
 function Inventory:update(args)
+  if self.state.mouse and self.state.mouse.dead then
+    self.state.mouse = nil
+  end
+
   for slot, item in pairs(self.state.slots) do
     if item.dead then
       -- remove item from the inventory that has run out
