@@ -3,14 +3,15 @@ local Image = require "image"
 local Object = require "classic"
 local properties = require "properties"
 
+local options = {offsetY = 50}
 local images = {
-  Image("resources/rock-crack-6.png"),
-  Image("resources/rock-crack-5.png"),
-  Image("resources/rock-crack-4.png"),
-  Image("resources/rock-crack-3.png"),
-  Image("resources/rock-crack-2.png"),
-  Image("resources/rock-crack-1.png"),
-  Image("resources/rock.png"),
+  Image("resources/rock-crack-6.png", options),
+  Image("resources/rock-crack-5.png", options),
+  Image("resources/rock-crack-4.png", options),
+  Image("resources/rock-crack-3.png", options),
+  Image("resources/rock-crack-2.png", options),
+  Image("resources/rock-crack-1.png", options),
+  Image("resources/rock.png", options),
 }
 
 local Rock = Object:extend()

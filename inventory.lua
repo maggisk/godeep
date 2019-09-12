@@ -127,10 +127,11 @@ function Inventory:update(args)
       item:update(args)
     end
   end
+
+  self.bar:layout()
 end
 
 function Inventory:draw()
-  self.bar:layout()
   self.bar:draw()
 
   if self.state.mouse then

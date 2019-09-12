@@ -12,11 +12,13 @@ function Image:new(path, options)
   self.animating = false
   self.loop = options.loop or false
   self.ratio = options.ratio or 1
-  self.data = options._data or love.image.newImageData(path)
-  self.image = options._image or love.graphics.newImage(self.data)
+  self.offsetX = options.offsetX or 0
+  self.offsetY = options.offsetY or 0
+  self.data = options.data or love.image.newImageData(path)
+  self.image = options.image or love.graphics.newImage(self.data)
   self.width = self.image:getWidth() / self.columns
   self.height = self.image:getHeight() / math.ceil(self.frames / self.columns)
-  self.quads = options._quads or {}
+  self.quads = options.quads or {}
   if #self.quads == 0 then
     for i = 0, self.frames do
       local x = self.width * (i % self.columns)
@@ -24,6 +26,10 @@ function Image:new(path, options)
       table.insert(self.quads, love.graphics.newQuad(x, y, self.width, self.height, self.image:getDimensions()))
     end
   end
+end
+
+function Image:copy()
+  return Image(self.path, self)
 end
 
 function Image:getWidth()
@@ -48,7 +54,7 @@ function Image:update(dt)
 end
 
 function Image:draw(point)
-  love.graphics.draw(self.image, self:currentQuad(), point.x, point.y, 0, 1, 1, self:getWidth() / 2, self:getHeight())
+  love.graphics.draw(self.image, self:currentQuad(), point.x + self.offsetX, point.y + self.offsetY, 0, 1, 1, self:getWidth() / 2, self:getHeight())
 end
 
 function Image:currentQuad()
@@ -56,18 +62,6 @@ function Image:currentQuad()
     return self.quads[1]
   end
   return self.quads[1 + math.floor(self.elapsed / self.duration * self.frames)]
-end
-
-function Image:copy()
-  return Image(self.path, {
-    _image = self.image,
-    _data = self.data,
-    frames = self.frames,
-    columns = self.columns,
-    duration = self.duration,
-    _quads = self.quads,
-    loop = self.loop,
-  })
 end
 
 function Image:animate()
@@ -88,8 +82,8 @@ function Image:stop()
 end
 
 function Image:isVisibleAt(entityPos, worldPos)
-  local x = math.floor((worldPos.x - (entityPos.x - self:getWidth() / 2)) / self.ratio)
-  local y = math.floor((worldPos.y - (entityPos.y - self:getHeight()   )) / self.ratio)
+  local x = math.floor((worldPos.x - (entityPos.x + self.offsetX - self:getWidth() / 2)) / self.ratio)
+  local y = math.floor((worldPos.y - (entityPos.y + self.offsetY - self:getHeight()   )) / self.ratio)
 
   if x < 0 or x >= self.width or y < 0 or y >= self.height then
     return false

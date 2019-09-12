@@ -4,10 +4,10 @@ local Image = require "image"
 
 local Tree = Object:extend()
 
-Tree.radius = 25
+Tree.radius = 30
 Tree.tags = {type = "tree", takesDamageFrom = {treecutter = true}}
 
-local image = Image("resources/treeshake.png", {frames = 7, duration = 0.3})
+local image = Image("resources/treeshake.png", {frames = 7, duration = 0.3, offsetY = 30, offsetX = -10})
 
 function Tree:new(x, y)
   self.pos = Point(x, y)
