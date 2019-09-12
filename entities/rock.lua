@@ -2,6 +2,8 @@ local Point = require "point"
 local Image = require "image"
 local Object = require "classic"
 local properties = require "properties"
+local simple = require "entities/simple_entities"
+local util = require "util"
 
 local options = {offsetY = 50}
 local images = {
@@ -27,6 +29,10 @@ end
 
 function Rock:getImage()
   return images[self.hitpoints]
+end
+
+function Rock:die()
+  util.spawn(5, self, simple.Stone)
 end
 
 function Rock:draw()

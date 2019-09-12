@@ -82,7 +82,12 @@ end
 function Inventory:handleSlotClick(event, slot)
   local item = self.state.slots[slot]
 
-  if self.state.mouse then print(rules.canMergeEntities(self.state.mouse, item)) end
+  if event.button == 2 then
+    if item.tags.wearable then
+      self.state.slots[slot], self.state.slots[item.tags.wearable] = self.state.slots[item.tags.wearable], self.state.slots[slot]
+    end
+    return
+  end
 
   if love.keyboard.isDown("lctrl") then
     if self.state.mouse == nil or rules.canMergeEntities(self.state.mouse, item) then

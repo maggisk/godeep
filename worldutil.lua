@@ -21,6 +21,7 @@ function module.clearDeadEntities(entities, entitiesByTag)
   local i = 1
   for _, entity in ipairs(entities) do
     if entity.dead then
+      -- remove from tag => entities mapping
       for tag, _ in pairs(entity.tags) do
         assert(entitiesByTag[tag][entity.eid] ~= nil)
         entitiesByTag[tag][entity.eid] = nil

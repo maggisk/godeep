@@ -1,6 +1,8 @@
 local Object = require "classic"
 local Point = require "point"
 local Image = require "image"
+local simple = require "entities/simple_entities"
+local util = require "util"
 
 local Tree = Object:extend()
 
@@ -12,7 +14,6 @@ local image = Image("resources/treeshake.png", {frames = 7, duration = 0.3, offs
 function Tree:new(x, y)
   self.pos = Point(x, y)
   self.hitpoints = 10
-  self.newEntities = {}
   self.image = image
 end
 
@@ -36,10 +37,7 @@ end
 
 function Tree:die()
   -- spawn logs when tree dies
-  local Log = require('entities').Log
-  for i = 1, 4 do
-    table.insert(self.newEntities, Log(self.pos.x + love.math.random(-20, 20), self.pos.y + love.math.random(-20, 20)))
-  end
+  util.spawn(4, self, simple.Log)
 end
 
 function Tree:attemptToHit(player)
