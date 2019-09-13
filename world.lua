@@ -4,6 +4,7 @@ local Point = require "point"
 local ent = require "entities"
 local shaders = require "shaders"
 local EntityManager = require "entitymanager"
+local systems = require "systems"
 
 local MouseEvent = Object:extend()
 function MouseEvent:new(type, x, y, attr)
@@ -50,10 +51,16 @@ function World:new()
   self.entities = EntityManager()
   self.visibleEntities = {}
   self.hoveringEntity = nil
+  self.events = {mouse = {}, keyboard = {}}
   self.camera = Camera()
+  self.systems = {
+    systems.Planter(),
+    systems.WorldMouseClick(),
+  }
 
   self.entities:add(self.player)
   randomEntities(ent.Axe, 100, self.entities)
+  randomEntities(ent.PineCone, 100, self.entities)
   randomEntities(ent.Tree, 1000, self.entities)
   randomEntities(ent.Rock, 100, self.entities)
 end
@@ -68,6 +75,20 @@ function World:update(dt)
   self.hoveringEntity = self:findHoveringEntity(self.visibleEntities)
   self.camera:follow(self.player.pos)
   self.camera:update(dt)
+
+  -- we pass to the systems all public attributes of the world object
+  local state = {}
+  for k, v in pairs(self) do
+    if k:sub(1, 1) ~= "_" then
+      state[k] = v
+    end
+  end
+
+  for _, system in ipairs(self.systems) do
+    system:update(state)
+  end
+
+  self.events = {mouse = {}, keyboard = {}}
 end
 
 function World:draw()
@@ -83,6 +104,10 @@ function World:draw()
     if hovering then love.graphics.setShader() end
   end
 
+  for _, system in ipairs(self.systems) do
+    system:draw()
+  end
+
   love.graphics.pop()
 
   self.player:drawAbsolute()
@@ -90,17 +115,9 @@ function World:draw()
 end
 
 function World:mousepressed(x, y, button, istouch, presses)
-  local e = MouseEvent("click", x, y, {button = button, istouch = istouch, presses = presses})
+  local e = MouseEvent("click", x, y, {button = button, istouch = istouch, presses = presses, worldPos = self.camera:screenToWorldPos(Point(x, y))})
   e:callMethod(self.player.inventory, "processMouseEvent")
-  e:callMethod(self, "handleMouseClick")
-end
-
-function World:handleMouseClick(e)
-  if self.hoveringEntity then
-    self.player:hit(self.hoveringEntity)
-  else
-    self.player:moveTo(self.camera:screenToWorldPos(Point(e.x, e.y)))
-  end
+  e:callFunc(function() table.insert(self.events.mouse, e) end)
 end
 
 function World:findHoveringEntity(entities)

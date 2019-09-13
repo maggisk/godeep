@@ -22,9 +22,11 @@ function EntityManager:add(entity)
 end
 
 function EntityManager:remove(entity)
+  assert(self.entities[entity])
   self.entities[entity] = nil
   for tag, _ in pairs(entity.tags) do
-    self.entitiesByTag[entity] = nil
+    assert(self.entitiesByTag[tag][entity])
+    self.entitiesByTag[tag][entity] = nil
   end
 end
 
@@ -62,6 +64,15 @@ function EntityManager:fixCollisions()
       end
     end
   end
+end
+
+function EntityManager:canAddWithoutCollisions(entity, player, entities)
+  for _, other in ipairs(self:findCollisions(entity, entities)) do
+    if other ~= player and not other.disabled then
+      return false
+    end
+  end
+  return true
 end
 
 function EntityManager:findCollisions(entity, entities)

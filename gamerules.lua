@@ -53,6 +53,13 @@ function findDamageDealer(a, b)
   return match.entity, (match.entity and match.value)
 end
 
+function module.decrement(entity)
+  entity.count = entity.count - 1
+  if entity.count < 1 then
+    kill(entity)
+  end
+end
+
 function module.canAttack(a, b)
   -- dead things can never attack anything
   if not a.tags.alive then return false end

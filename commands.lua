@@ -132,6 +132,25 @@ function PickUp(target, source)
   return chain(Move(target.pos, gap), _PickUp(target))
 end
 
+local _Plant = Object:extend()
+function _Plant:new(source, target, entities)
+  self.source = source
+  self.target = target
+  self.entities = entities
+end
+
+function _Plant:update(entity, dt)
+  self.entities:add(self.target)
+  rules.decrement(self.source)
+  if self.target.planted then self.target:planted() end
+  self.done = true
+  return getNext(self)
+end
+
+function Plant(source, target, entities)
+  return chain(Move(target.pos, target.radius), _Plant(source, target, entities))
+end
+
 function tryGetTool(entity, slot)
   slot = slot or "hand"
   if entity.inventory and entity.inventory:get(slot) then
@@ -159,5 +178,6 @@ return {
   Move = Move,
   KeyboardMove = KeyboardMove,
   Attack = Attack,
-  PickUp = PickUp
+  PickUp = PickUp,
+  Plant = Plant,
 }

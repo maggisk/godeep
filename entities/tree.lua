@@ -28,16 +28,25 @@ function Tree:draw()
 end
 
 function Tree:tookHit()
-  -- copy the image the first time we animate it so we can share an image object for all trees initially
+  self:_getImageCopy():animate()
+end
+
+function Tree:planted()
+  --self:_getImageCopy().ratio = love.math.random() / 2 + 0.5
+end
+
+function Tree:_getImageCopy()
+  -- copy the image the first time we change something about it so we can share an image object for all trees initially
   if self.image == image then
     self.image = image:copy()
   end
-  self.image:animate()
+  return self.image
 end
 
 function Tree:die()
   -- spawn logs when tree dies
   util.spawn(4, self, simple.Log)
+  util.spawn(love.math.random(1, 2), self, simple.PineCone)
 end
 
 function Tree:attemptToHit(player)

@@ -55,25 +55,6 @@ function Player:say(text, ttl)
   self.speech:say(text, ttl)
 end
 
-function Player:moveTo(p)
-  self.command = commands.Move(p)
-end
-
-function Player:hit(obj)
-  if rules.canPickUp(self, obj) then
-    self.command = commands.PickUp(obj, self)
-  elseif rules.canAttack(self, obj) then
-    self.command = commands.Attack(obj)
-  else
-    -- self.command = commands.idle
-    if obj.attemptToHit then
-      obj:attemptToHit(self)
-    else
-      self:say("I can not do that")
-    end
-  end
-end
-
 function Player:update(args)
   self.speech:update(args.dt)
 
