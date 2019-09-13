@@ -3,7 +3,6 @@ local Camera = require "camera"
 local Point = require "point"
 local ent = require "entities"
 local shaders = require "shaders"
-local wutil = require "worldutil"
 local EntityManager = require "entitymanager"
 
 local MouseEvent = Object:extend()
