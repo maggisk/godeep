@@ -112,7 +112,7 @@ function Inventory:drop(item, pos)
     self.state.mouse = nil
   end
   for slot, item in pairs(self.state.slots) do
-    if not item.disabled then
+    if item.disabled then
       self.state.slots[slot] = nil
     end
   end

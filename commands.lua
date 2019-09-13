@@ -14,17 +14,7 @@ function chain(first, ...)
   return first
 end
 
-function before(cmd1, cmd2)
-  cmd1._next = cmd2
-  return cmd1
-end
-
-function after(cmd1, cmd2)
-  cmd1._next, cmd2._next = cmd2, cmd1._next
-  return cmd1
-end
-
-function last(cmd1, cmd2)
+function append(cmd1, cmd2)
   while cmd1._next do
     cmd1._next = cmd1._next
   end
@@ -32,9 +22,13 @@ function last(cmd1, cmd2)
   return cmd1
 end
 
-function getNext(cmd)
-  if cmd.done then return cmd._next or idle end
+function maybeNext(cmd)
+  if cmd.done then return getNext(cmd) end
   return cmd
+end
+
+function getNext(cmd)
+  return cmd._next or idle
 end
 
 local Move = Object:extend()
@@ -47,7 +41,7 @@ function Move:update(entity, dt)
   entity.orientation = self.pos:copy():subtract(entity.pos)
   self.done = moveCloserTo(entity, self.pos, entity.speed * dt) or
               entity.pos:distanceTo(self.pos) < self.gap
-  return getNext(self)
+  return maybeNext(self)
 end
 
 local KeyboardMove = Object:extend()
@@ -98,7 +92,7 @@ function Swing:update(entity, dt)
     end
   end
 
-  return getNext(self)
+  return maybeNext(self)
 end
 
 local Attack = Object:extend()
@@ -108,47 +102,62 @@ function Attack:new(target)
 end
 
 function Attack:update(entity, dt)
-  if entity.pos:distanceTo(self.target.pos) > entity.radius + self.target.radius + tryGetTool(entity).tags.range then
-    self.move:update(entity, dt)
-    return self
-  else
+  if entity.pos:distanceTo(self.target.pos) <= entity.radius + self.target.radius + tryGetTool(entity).tags.range then
     return chain(Swing(self.target), self._next)
   end
+  self.move:update(entity, dt)
+  return self
 end
 
-local _PickUp = Object:extend()
-function _PickUp:new(target)
+local PickUp = Object:extend()
+function PickUp:new(target, source)
   self.target = target
+  self.source = source
+  self.move = Move(target.pos, math.max(target.radius, source.radius))
 end
 
-function _PickUp:update(entity, dt)
-  entity.inventory:add(self.target)
-  self.done = true
-  return getNext(self)
+function PickUp:update(entity, dt)
+  self.move:update(entity, dt)
+  if self.move.done then
+    entity.inventory:add(self.target)
+    return getNext(self)
+  end
+  return self
 end
 
-function PickUp(target, source)
-  local gap = math.max(target.radius, source.radius)
-  return chain(Move(target.pos, gap), _PickUp(target))
-end
-
-local _Plant = Object:extend()
-function _Plant:new(source, target, entities)
+local Plant = Object:extend()
+function Plant:new(source, target, entities)
   self.source = source
   self.target = target
   self.entities = entities
+  self.move = Move(target.pos, target.radius)
 end
 
-function _Plant:update(entity, dt)
-  self.entities:add(self.target)
-  rules.decrement(self.source)
-  if self.target.planted then self.target:planted() end
-  self.done = true
-  return getNext(self)
+function Plant:update(entity, dt)
+  self.move:update(entity, dt)
+  if self.move.done then
+    self.entities:add(self.target)
+    rules.decrement(self.source)
+    if self.target.planted then self.target:planted() end
+    return getNext(self)
+  end
+  return self
 end
 
-function Plant(source, target, entities)
-  return chain(Move(target.pos, target.radius), _Plant(source, target, entities))
+local Drop = Object:extend()
+function Drop:new(source, item, target)
+  self.target = target
+  self.item = item
+  self.move = Move(target, source.radius)
+end
+
+function Drop:update(entity, dt)
+  self.move:update(entity, dt)
+  if self.move.done then
+    entity.inventory:drop(self.item, self.target)
+    return getNext(self)
+  end
+  return self
 end
 
 function tryGetTool(entity, slot)
@@ -172,12 +181,10 @@ end
 return {
   idle = idle,
   chain = chain,
-  before = before,
-  after = after,
-  getNext = getNext,
   Move = Move,
   KeyboardMove = KeyboardMove,
   Attack = Attack,
   PickUp = PickUp,
+  Drop = Drop,
   Plant = Plant,
 }

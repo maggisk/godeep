@@ -9,4 +9,6 @@ for k, v in pairs(require("entities/simple_entities")) do
   entities[k] = v
 end
 
+-- TODO: we should add some validation of entities here to catch mistakes
+
 return entities

@@ -14,8 +14,9 @@ function Planter:update(state)
     local x, y = love.mouse.getPosition()
     local pos = state.camera:screenToWorldPos(Point(x, y))
     self.entity = ent[item.tags.plants](pos.x, pos.y)
+    self.canPlant = state.entities:canAddWithoutCollisions(self.entity, state.player)
     for _, event in ipairs(state.events.mouse) do
-      if event.button == 2 and state.entities:canAddWithoutCollisions(self.entity, state.player) then
+      if event.button == 2 and self.canPlant then
         state.player.command = commands.Plant(item, self.entity, state.entities)
         event:halt()
       end
@@ -24,8 +25,8 @@ function Planter:update(state)
 end
 
 function Planter:draw()
-  if self.entity then
-    love.graphics.setColor(0, 0, 0, 0.5)
+  if self.entity and self.canPlant then
+    love.graphics.setColor(1, 1, 1, 0.8)
     self.entity:draw()
     love.graphics.setColor(1, 1, 1, 1)
   end
@@ -34,24 +35,19 @@ end
 local WorldMouseClick = Object:extend()
 function WorldMouseClick:update(state)
   for _, event in ipairs(state.events.mouse) do
-    if event.halted or event.button ~= 1 then
-      goto continue
+    if not event.halted and event.button == 1 then
+      if not state.hoveringEntity and state.player.inventory:getMouseItem() then
+        state.player.command = commands.Drop(state.player, state.player.inventory:getMouseItem(), event.worldPos)
+      elseif not state.hoveringEntity then
+        state.player.command = commands.Move(Point(event.worldPos.x, event.worldPos.y), state.player.radius)
+      elseif rules.canPickUp(state.player, state.hoveringEntity) then
+        state.player.command = commands.PickUp(state.hoveringEntity, state.player)
+      elseif rules.canAttack(state.player, state.hoveringEntity) then
+        state.player.command = commands.Attack(state.hoveringEntity)
+      else
+        state.player:say("I can't do that")
+      end
     end
-
-    if not state.hoveringEntity then
-      state.player.command = commands.Move(Point(event.worldPos.x, event.worldPos.y), state.player.radius)
-      goto continue
-    end
-
-    if rules.canPickUp(state.player, state.hoveringEntity) then
-      state.player.command = commands.PickUp(state.hoveringEntity, state.player)
-    elseif rules.canAttack(state.player, state.hoveringEntity) then
-      state.player.command = commands.Attack(state.hoveringEntity)
-    else
-      state.player:say("I can't do that")
-    end
-
-    ::continue::
   end
 end
 
