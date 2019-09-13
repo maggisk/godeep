@@ -55,7 +55,7 @@ function Inventory:getMouseItem()
 end
 
 function Inventory:add(item)
-  item.enabled = false
+  item.disabled = true
   if item.tags.wearable and self.state.slots[item.tags.wearable] == nil then
     self.state.slots[item.tags.wearable] = item
   else
@@ -84,7 +84,7 @@ function Inventory:handleSlotClick(event, slot)
 
   if event.button == 2 then
     if item.tags.wearable then
-      self.state.slots[slot], self.state.slots[item.tags.wearable] = self.state.slots[item.tags.wearable], self.state.slots[slot]
+      self.state.slots[slot], self.state.slots[item.tags.wearable] = self.state.slots[item.tags.wearable], item
     end
     return
   end
@@ -107,12 +107,12 @@ end
 
 function Inventory:drop(item, pos)
   if self.state.mouse and self.state.mouse == item then
-    item.enabled = true
+    item.disabled = nil
     item.pos:set(pos)
     self.state.mouse = nil
   end
   for slot, item in pairs(self.state.slots) do
-    if item.enabled ~= false then
+    if not item.disabled then
       self.state.slots[slot] = nil
     end
   end

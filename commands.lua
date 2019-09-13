@@ -128,10 +128,7 @@ function _PickUp:update(entity, dt)
 end
 
 function PickUp(target, source)
-  local gap = source.radius
-  if target.radius > source.radius then
-    gap = target.radius + source.radius
-  end
+  local gap = math.max(target.radius, source.radius)
   return chain(Move(target.pos, gap), _PickUp(target))
 end
 

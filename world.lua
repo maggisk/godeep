@@ -4,6 +4,7 @@ local Point = require "point"
 local ent = require "entities"
 local shaders = require "shaders"
 local wutil = require "worldutil"
+local EntityManager = require "entitymanager"
 
 local MouseEvent = Object:extend()
 function MouseEvent:new(type, x, y, attr)
@@ -32,12 +33,12 @@ function MouseEvent:callMethod(obj, methodName, ...)
   end
 end
 
-function randomEntities(EntityClass, n, world)
+function randomEntities(EntityClass, n, entities)
   local i = 0
   while i < n do
-    local entity = EntityClass(love.math.random(-10000, 10000), love.math.random(-10000, 10000))
-    if #wutil.findCollisions(entity, world.entities) == 0 then
-      world:addEntity(entity)
+    local entity = EntityClass(love.math.random(-5000, 5000), love.math.random(-5000, 5000))
+    if #entities:findCollisions(entity) == 0 then
+      entities:add(entity)
       i = i + 1
     end
   end
@@ -47,66 +48,25 @@ local World = Object:extend()
 
 function World:new()
   self.player = ent.Player(0, 0)
-  self.entities = {}
-  self.entitiesByTag = {}
+  self.entities = EntityManager()
   self.visibleEntities = {}
   self.hoveringEntity = nil
   self.camera = Camera()
-  self.nextEntityId = 0
 
-  self:addEntity(self.player)
-  self:addEntity(ent.Axe(40, 60))
-  self:addEntity(ent.Axe(60, 60))
-  self:addEntity(ent.Axe(40, 100))
-  self:addEntity(ent.Axe(100, 60))
-
-  randomEntities(ent.Tree, 10000, self)
-  randomEntities(ent.Rock, 1000, self)
-end
-
-function World:addEntity(entity)
-  assert(entity.eid == nil, "entity can not be added twice")
-  assert(type(entity.tags) == "table", "entity must have a tags table")
-  assert(entity.pos.x)
-  assert(entity.pos.y)
-
-  self.nextEntityId = self.nextEntityId + 1
-  entity.eid = self.nextEntityId
-
-  table.insert(self.entities, entity)
-  for tag, _ in pairs(entity.tags) do
-    if self.entitiesByTag[tag] == nil then
-      self.entitiesByTag[tag] = {}
-    end
-    assert(self.entitiesByTag[tag][entity.eid] == nil)
-    self.entitiesByTag[tag][entity.eid] = entity
-  end
+  self.entities:add(self.player)
+  randomEntities(ent.Axe, 100, self.entities)
+  randomEntities(ent.Tree, 1000, self.entities)
+  randomEntities(ent.Rock, 100, self.entities)
 end
 
 function World:update(dt)
-  -- call update on all entities in the world
-  local args = {dt = dt, world = self}
-  for _, entity in ipairs(self.entities) do
-    if entity.update and entity.enabled ~= false then
-      entity:update(args)
-    end
-  end
-
-  -- add new entities that may have been created in the last update call
-  for _, entity in ipairs(self.entities) do
-    if entity.newEntities then
-      while entity.newEntities[1] do
-        self:addEntity(table.remove(entity.newEntities))
-      end
-    end
-  end
-
-  wutil.clearDeadEntities(self.entities, self.entitiesByTag)
-  self:fixCollisions()
-
-  self:collectVisibleEntities()
-  self:setHoveringEntity()
-
+  self.entities:updateAll({dt = dt, entities = self.entities})
+  self.entities:addNewEntities()
+  self.entities:clearDead()
+  self.entities:fixCollisions()
+  local left, top, right, bottom = self.camera:visibleRect()
+  self.visibleEntities = self.entities:findVisibleEntitiesInRect(top, left, right, bottom)
+  self.hoveringEntity = self:findHoveringEntity(self.visibleEntities)
   self.camera:follow(self.player.pos)
   self.camera:update(dt)
 end
@@ -117,16 +77,11 @@ function World:draw()
   love.graphics.push()
   self.camera:apply()
 
-  local x, y = love.mouse.getPosition()
-  local mousePos = self.camera:screenToWorldPos(Point(x, y))
-
-  for i, entity in pairs(self.visibleEntities) do
-    if entity.draw then
-      local hovering = entity == self.hoveringEntity
-      if hovering then love.graphics.setShader(shaders.brighten) end
-      entity:draw()
-      if hovering then love.graphics.setShader() end
-    end
+  for _, entity in pairs(self.visibleEntities) do
+    local hovering = (entity == self.hoveringEntity)
+    if hovering then love.graphics.setShader(shaders.brighten) end
+    entity:draw()
+    if hovering then love.graphics.setShader() end
   end
 
   love.graphics.pop()
@@ -149,67 +104,16 @@ function World:handleMouseClick(e)
   end
 end
 
-function World:collectVisibleEntities(threshold)
-  threshold = threshold or 100
-  self.visibleEntities = {}
-
-  local left, top, right, bottom = self.camera:visibleRect()
-  for i, e in ipairs(self.entities) do
-    local image = e.image
-    if e.enabled ~= false and
-       e.pos.x + threshold + image:getWidth() / 2 > left and
-       e.pos.x - threshold - image:getWidth() / 2 < right and
-       e.pos.y + threshold > top and
-       e.pos.y - threshold - image:getHeight() then
-      table.insert(self.visibleEntities, e)
-    end
-  end
-
-  -- sort top to bottom
-  table.sort(self.visibleEntities, function(a, b)
-    if a.pos.y ~= b.pos.y then return a.pos.y < b.pos.y end
-    if a.pos.x ~= b.pos.x then return a.pos.x < b.pos.x end
-    -- compare entity id if x and y coordinates are identical to make the sort stable
-    return a.eid < b.eid
-  end)
-end
-
-function World:setHoveringEntity()
-  self.hoveringEntity = nil
-
+function World:findHoveringEntity(entities)
   local x, y = love.mouse.getPosition()
   local mousePos = self.camera:screenToWorldPos(Point(x, y))
 
-  for i = #self.visibleEntities, 1, -1 do
-    local e = self.visibleEntities[i]
+  for i = #entities, 1, -1 do
+    local e = entities[i]
     if e ~= self.player and e.image:isVisibleAt(e.pos, mousePos) then
-      self.hoveringEntity = e
-      break
+      return e
     end
   end
-end
-
-function World:fixCollisions()
-  for i, obj in ipairs(self:findCollisions(self.player)) do
-    if not obj.pathable then
-      self.player.pos:subtract(obj.pos):setLength(self.player.radius + obj.radius):add(obj.pos)
-    end
-  end
-end
-
-function World:findCollisions(obj)
-  local colliding = {}
-  for i, other in ipairs(self.entities) do
-    if obj ~= other then
-      local r = other.radius + obj.radius
-      local xd = math.abs(other.pos.x - obj.pos.x)
-      local yd = math.abs(other.pos.y - obj.pos.y)
-      if xd < r and yd < r and math.sqrt(xd*xd + yd*yd) < r then
-        table.insert(colliding, other)
-      end
-    end
-  end
-  return colliding
 end
 
 return World
