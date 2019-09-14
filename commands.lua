@@ -187,4 +187,5 @@ return {
   PickUp = PickUp,
   Drop = Drop,
   Plant = Plant,
+  Swing = Swing,
 }

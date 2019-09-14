@@ -5,6 +5,7 @@ local Point = require "point"
 local rules = require "gamerules"
 local U = require "underscore"
 
+local Planter = Object:extend()
 function Planter:update(state)
   self.entity = nil
 
@@ -42,7 +43,9 @@ function WorldMouseClick:update(state)
       elseif rules.canPickUp(state.player, state.hoveringEntity) then
         state.player.command = commands.PickUp(state.hoveringEntity, state.player)
       elseif rules.canAttack(state.player, state.hoveringEntity) then
-        state.player.command = commands.Attack(state.hoveringEntity)
+        if getmetatable(state.player.command) ~= commands.Swing or state.player.command.target ~= state.hoveringEntity then
+          state.player.command = commands.Attack(state.hoveringEntity)
+        end
       else
         state.player:say("I can't do that")
       end
