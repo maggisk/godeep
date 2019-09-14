@@ -20,7 +20,7 @@ function Image:new(path, options)
   self.height = self.image:getHeight() / math.ceil(self.frames / self.columns)
   self.quads = options.quads or {}
   if #self.quads == 0 then
-    for i = 0, self.frames do
+    for i = 0, self.frames - 1 do
       local x = self.width * (i % self.columns)
       local y = self.height * math.floor(i / self.columns)
       table.insert(self.quads, love.graphics.newQuad(x, y, self.width, self.height, self.image:getDimensions()))

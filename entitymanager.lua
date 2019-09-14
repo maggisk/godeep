@@ -59,9 +59,7 @@ end
 function EntityManager:fixCollisions()
   for being, _ in pairs(self:byTag("alive")) do
     for _, entity in ipairs(self:findCollisions(being, self:byTag("static"))) do
-      if not entity.pathable then
-        being.pos:subtract(entity.pos):setLength(being.radius + entity.radius):add(entity.pos)
-      end
+      being.pos:subtract(entity.pos):setLength(being.radius + entity.radius):add(entity.pos)
     end
   end
 end

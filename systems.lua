@@ -3,8 +3,7 @@ local ent = require "entities"
 local commands = require "commands"
 local Point = require "point"
 local rules = require "gamerules"
-
-local Planter = Object:extend()
+local U = require "underscore"
 
 function Planter:update(state)
   self.entity = nil
@@ -16,7 +15,7 @@ function Planter:update(state)
     self.entity = ent[item.tags.plants](pos.x, pos.y)
     self.canPlant = state.entities:canAddWithoutCollisions(self.entity, state.player)
     for _, event in ipairs(state.events.mouse) do
-      if event.button == 2 and self.canPlant then
+      if not event.halted and event.button == 2 and self.canPlant then
         state.player.command = commands.Plant(item, self.entity, state.entities)
         event:halt()
       end

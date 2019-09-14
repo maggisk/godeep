@@ -9,6 +9,10 @@ for k, v in pairs(require("entities/simple_entities")) do
   entities[k] = v
 end
 
--- TODO: we should add some validation of entities here to catch mistakes
+for k, cls in pairs(entities) do
+  if cls.weight and not cls.count then
+    cls.count = 1
+  end
+end
 
 return entities
