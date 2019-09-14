@@ -14,7 +14,8 @@ local image = Image("resources/treeshake.png", {frames = 7, duration = 0.3, offs
 function Tree:new(x, y)
   self.pos = Point(x, y)
   self.hitpoints = 10
-  self.image = image
+  self.image = image:copy()
+  self.image.ratio = 0.8
 end
 
 function Tree:update(args)
