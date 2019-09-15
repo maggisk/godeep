@@ -72,7 +72,12 @@ function Inventory:_insert(item)
   end
 
   -- otherwise insert into first available slot
-  table.insert(self.state.slots, item)
+  for i = 1, math.huge do
+    if self.state.slots[i] == nil then
+      self.state.slots[i] = item
+      break
+    end
+  end
 end
 
 function Inventory:processMouseEvent(e)

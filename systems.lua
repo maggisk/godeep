@@ -13,7 +13,7 @@ function Planter:update(state)
   if item and item.tags.plants and not state.hoveringEntity then
     local x, y = love.mouse.getPosition()
     local pos = state.camera:screenToWorldPos(Point(x, y))
-    self.entity = ent[item.tags.plants](pos.x, pos.y)
+    self.entity = ent[item.tags.plants](pos.x, pos.y, {planting = true})
     self.canPlant = state.entities:canAddWithoutCollisions(self.entity, state.player)
     for _, event in ipairs(state.events.mouse) do
       if not event.halted and event.button == 2 and self.canPlant then

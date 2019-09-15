@@ -8,14 +8,18 @@ local Tree = Object:extend()
 
 Tree.radius = 30
 Tree.tags = {static = true, takesDamageFrom = {treecutter = true}}
+Tree.saplingRatio = 0.4
 
 local image = Image("resources/treeshake.png", {frames = 7, duration = 0.3, offsetY = 30, offsetX = -10})
 
-function Tree:new(x, y)
+function Tree:new(x, y, options)
   self.pos = Point(x, y)
   self.hitpoints = 10
   self.image = image:copy()
-  self.image.ratio = 0.8
+  self.image.ratio = 0.5 + love.math.random() / 2
+  if options and options.planting then
+    self.image.ratio = self.saplingRatio
+  end
 end
 
 function Tree:update(args)
@@ -33,7 +37,7 @@ function Tree:tookHit()
 end
 
 function Tree:planted()
-  --self:_getImageCopy().ratio = love.math.random() / 2 + 0.5
+  self.image.ratio = self.saplingRatio
 end
 
 function Tree:_getImageCopy()

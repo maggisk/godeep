@@ -54,8 +54,8 @@ function Image:update(dt)
 end
 
 function Image:draw(point)
-  local left = point.x + self.offsetX - self:getWidth() / 2
-  local top = point.y + self.offsetY - self:getHeight()
+  local left = point.x + self.offsetX * self.ratio - self:getWidth() / 2
+  local top = point.y + self.offsetY * self.ratio - self:getHeight()
   love.graphics.draw(self.image, self:currentQuad(), left, top, 0, self.ratio, self.ratio)
 end
 
@@ -84,8 +84,8 @@ function Image:stop()
 end
 
 function Image:isVisibleAt(entityPos, worldPos)
-  local x = math.floor((worldPos.x - (entityPos.x + self.offsetX - self:getWidth()  / self.ratio / 2)))
-  local y = math.floor((worldPos.y - (entityPos.y + self.offsetY - self:getHeight() / self.ratio)))
+  local x = math.floor((worldPos.x - entityPos.x) / self.ratio - self.offsetX + self.width / 2)
+  local y = math.floor((worldPos.y - entityPos.y) / self.ratio - self.offsetY + self.height)
 
   if x < 0 or x >= self.width or y < 0 or y >= self.height then
     return false

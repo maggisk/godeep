@@ -28,7 +28,7 @@ local images = {
   [direction.up] = Image("resources/eric-back.png"),
 }
 
-local SPEED = 200 -- pixels per second
+local SPEED = 300 -- pixels per second
 
 local Player = Object:extend()
 properties.getters(Player, {image = "getImage"})

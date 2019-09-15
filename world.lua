@@ -97,7 +97,7 @@ function World:draw()
   love.graphics.push()
   self.camera:apply()
 
-  for _, entity in pairs(self.visibleEntities) do
+  for _, entity in ipairs(self.visibleEntities) do
     local hovering = (entity == self.hoveringEntity)
     if hovering then love.graphics.setShader(shaders.brighten) end
     entity:draw()
