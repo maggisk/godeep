@@ -51,7 +51,7 @@ function UIBox:isInside(x, y)
 end
 
 function UIBox:processMouseEvent(e)
-  if self:isInside(e.x, e.y) then
+  if self:isInside(e.screen.x, e.screen.y) then
     for _, child in ipairs(self.children) do
       e:callMethod(child, "processMouseEvent")
     end

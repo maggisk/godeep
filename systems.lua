@@ -4,6 +4,7 @@ local commands = require "commands"
 local Point = require "point"
 local rules = require "gamerules"
 local U = require "underscore"
+local ep = require "eventprocessing"
 
 local Planter = Object:extend()
 function Planter:update(state)
@@ -15,8 +16,8 @@ function Planter:update(state)
     local pos = state.camera:screenToWorldPos(Point(x, y))
     self.entity = ent[item.tags.plants](pos.x, pos.y, {planting = true})
     self.canPlant = state.entities:canAddWithoutCollisions(self.entity, state.player)
-    for _, event in ipairs(state.events.mouse) do
-      if not event.halted and event.button == 2 and self.canPlant then
+    if self.canPlant then
+      for _, event in ipairs(ep.filter(state.events, {type = "click", halted = false, button = 2})) do
         state.player.command = commands.Plant(item, self.entity, state.entities)
         event:halt()
       end
@@ -44,27 +45,24 @@ function WorldMouseClick:update(state, dt)
   end
 
   while self.visuals[1] and self.visuals[1].duration > self.duration do
-    print('remove')
     table.remove(self.visuals, 1)
   end
 
-  for _, event in ipairs(state.events.mouse) do
-    if not event.halted and event.button == 1 then
-      table.insert(self.visuals, {duration = 0, x = event.worldPos.x, y = event.worldPos.y})
+  for _, event in ipairs(ep.filter(state.events, {halted = false, button = 1})) do
+    table.insert(self.visuals, {duration = 0, x = event.world.x, y = event.world.y})
 
-      if not state.hoveringEntity and state.player.inventory:getMouseItem() then
-        state.player.command = commands.Drop(state.player, state.player.inventory:getMouseItem(), event.worldPos)
-      elseif not state.hoveringEntity then
-        state.player.command = commands.Move(Point(event.worldPos.x, event.worldPos.y), state.player.radius)
-      elseif rules.canPickUp(state.player, state.hoveringEntity) then
-        state.player.command = commands.PickUp(state.hoveringEntity, state.player)
-      elseif rules.canAttack(state.player, state.hoveringEntity) then
-        if getmetatable(state.player.command) ~= commands.Swing or state.player.command.target ~= state.hoveringEntity then
-          state.player.command = commands.Attack(state.hoveringEntity)
-        end
-      else
-        state.player:say("I can't do that")
+    if not state.hoveringEntity and state.player.inventory:getMouseItem() then
+      state.player.command = commands.Drop(state.player, state.player.inventory:getMouseItem(), event.world)
+    elseif not state.hoveringEntity then
+      state.player.command = commands.Move(Point(event.world.x, event.world.y), state.player.radius)
+    elseif rules.canPickUp(state.player, state.hoveringEntity) then
+      state.player.command = commands.PickUp(state.hoveringEntity, state.player)
+    elseif rules.canAttack(state.player, state.hoveringEntity) then
+      if getmetatable(state.player.command) ~= commands.Swing or state.player.command.target ~= state.hoveringEntity then
+        state.player.command = commands.Attack(state.hoveringEntity)
       end
+    else
+      state.player:say("I can't do that")
     end
   end
 end

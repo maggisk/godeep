@@ -5,33 +5,7 @@ local ent = require "entities"
 local shaders = require "shaders"
 local EntityManager = require "entitymanager"
 local systems = require "systems"
-
-local MouseEvent = Object:extend()
-function MouseEvent:new(type, x, y, attr)
-  self.type = type
-  self.x = x
-  self.y = y
-  for k, v in pairs(attr) do
-    self[k] = v
-  end
-  self.halted = false
-end
-
-function MouseEvent:halt()
-  self.halted = true
-end
-
-function MouseEvent:callFunc(func, ...)
-  if not self.halted then
-    func(self, ...)
-  end
-end
-
-function MouseEvent:callMethod(obj, methodName, ...)
-  if not self.halted then
-    obj[methodName](obj, self, ...)
-  end
-end
+local ep = require "eventprocessing"
 
 function randomEntities(EntityClass, n, entities)
   local i = 0
@@ -51,7 +25,7 @@ function World:new()
   self.entities = EntityManager()
   self.visibleEntities = {}
   self.hoveringEntity = nil
-  self.events = {mouse = {}, keyboard = {}}
+  self.events = {}
   self.camera = Camera()
   self.systems = {
     systems.Planter(),
@@ -88,7 +62,7 @@ function World:update(dt)
     system:update(state, dt)
   end
 
-  self.events = {mouse = {}, keyboard = {}}
+  self.events = {}
 end
 
 function World:draw()
@@ -115,9 +89,16 @@ function World:draw()
 end
 
 function World:mousepressed(x, y, button, istouch, presses)
-  local e = MouseEvent("click", x, y, {button = button, istouch = istouch, presses = presses, worldPos = self.camera:screenToWorldPos(Point(x, y))})
-  e:callMethod(self.player.inventory, "processMouseEvent")
-  e:callFunc(function() table.insert(self.events.mouse, e) end)
+  local event = ep.Event("mouse", "click", {
+    button = button,
+    istouch = istouch,
+    presses = presses,
+    screen = Point(x, y),
+    world = self.camera:screenToWorldPos(Point(x, y))
+  })
+  -- TODO: make inventory mouse event handler into a system
+  event:callMethod(self.player.inventory, "processMouseEvent")
+  event:callFunc(function() table.insert(self.events, event) end)
 end
 
 function World:findHoveringEntity(entities)
