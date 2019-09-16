@@ -23,9 +23,7 @@ function Tree:new(x, y, options)
 end
 
 function Tree:update(args)
-  if self.image ~= image then
-    self.image:update(args.dt)
-  end
+  self.image:update(args.dt)
 end
 
 function Tree:draw()
@@ -33,19 +31,11 @@ function Tree:draw()
 end
 
 function Tree:tookHit()
-  self:_getImageCopy():animate()
+  self.image:animate()
 end
 
 function Tree:planted()
   self.image.ratio = self.saplingRatio
-end
-
-function Tree:_getImageCopy()
-  -- copy the image the first time we change something about it so we can share an image object for all trees initially
-  if self.image == image then
-    self.image = image:copy()
-  end
-  return self.image
 end
 
 function Tree:die()
