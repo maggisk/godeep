@@ -14,14 +14,6 @@ function chain(first, ...)
   return first
 end
 
-function append(cmd1, cmd2)
-  while cmd1._next do
-    cmd1._next = cmd1._next
-  end
-  cmd1._next = cmd2
-  return cmd1
-end
-
 function maybeNext(cmd)
   if cmd.done then return getNext(cmd) end
   return cmd
