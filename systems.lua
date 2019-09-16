@@ -33,9 +33,25 @@ function Planter:draw()
 end
 
 local WorldMouseClick = Object:extend()
-function WorldMouseClick:update(state)
+function WorldMouseClick:new()
+  self.visuals = {}
+  self.duration = 0.5
+end
+
+function WorldMouseClick:update(state, dt)
+  for i, v in ipairs(self.visuals) do
+    v.duration = v.duration + dt
+  end
+
+  while self.visuals[1] and self.visuals[1].duration > self.duration do
+    print('remove')
+    table.remove(self.visuals, 1)
+  end
+
   for _, event in ipairs(state.events.mouse) do
     if not event.halted and event.button == 1 then
+      table.insert(self.visuals, {duration = 0, x = event.worldPos.x, y = event.worldPos.y})
+
       if not state.hoveringEntity and state.player.inventory:getMouseItem() then
         state.player.command = commands.Drop(state.player, state.player.inventory:getMouseItem(), event.worldPos)
       elseif not state.hoveringEntity then
@@ -53,7 +69,13 @@ function WorldMouseClick:update(state)
   end
 end
 
-function WorldMouseClick:draw() end
+function WorldMouseClick:draw()
+  for _, v in ipairs(self.visuals) do
+    love.graphics.setColor(0.1, 1, 0.1, 1 - v.duration / self.duration)
+    love.graphics.circle("line", v.x, v.y, v.duration / self.duration * 20)
+  end
+  love.graphics.setColor(1, 1, 1, 1)
+end
 
 return {
   Planter = Planter,

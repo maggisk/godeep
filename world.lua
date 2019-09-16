@@ -85,7 +85,7 @@ function World:update(dt)
   end
 
   for _, system in ipairs(self.systems) do
-    system:update(state)
+    system:update(state, dt)
   end
 
   self.events = {mouse = {}, keyboard = {}}
