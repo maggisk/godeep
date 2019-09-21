@@ -1,81 +1,117 @@
 local Object = require "classic"
-local ent = require "entities"
-local commands = require "commands"
 local Point = require "point"
-local rules = require "gamerules"
-local U = require "underscore"
 local ep = require "eventprocessing"
+local Pause = require "systems/pause"
+local Camera = require "systems/camera"
+local Planting = require "systems/planting"
+local Entities = require "systems/entities"
+local PlayerControl = require "systems/playercontrol"
 
-local Planter = Object:extend()
-function Planter:update(state)
-  self.entity = nil
+local System = Object:extend()
+function System:new()
+  self.names = {}
+  self.byName = {}
+  self.state = {}
+end
 
-  local item = state.player.inventory:getMouseItem()
-  if item and item.tags.plants and not state.hoveringEntity then
-    local x, y = love.mouse.getPosition()
-    local pos = state.camera:screenToWorldPos(Point(x, y))
-    self.entity = ent[item.tags.plants](pos.x, pos.y, {planting = true})
-    self.canPlant = state.entities:canAddWithoutCollisions(self.entity, state.player)
-    if self.canPlant then
-      for _, event in ipairs(ep.filter(state.events, {type = "click", halted = false, button = 2})) do
-        state.player.command = commands.Plant(item, self.entity, state.entities)
-        event:halt()
-      end
+function System:add(name, subsystem)
+  table.insert(self.names, name)
+  self.byName[name] = subsystem
+  self.state[name] = subsystem.state
+end
+
+function System:ready()
+  for _, name in ipairs(self.names) do
+    if self.byName[name].init then
+      self.byName[name]:init()
     end
   end
 end
 
-function Planter:draw()
-  if self.entity and self.canPlant then
-    love.graphics.setColor(1, 1, 1, 0.8)
-    self.entity:draw()
-    love.graphics.setColor(1, 1, 1, 1)
-  end
-end
-
-local WorldMouseClick = Object:extend()
-function WorldMouseClick:new()
-  self.visuals = {}
-  self.duration = 0.5
-end
-
-function WorldMouseClick:update(state, dt)
-  for i, v in ipairs(self.visuals) do
-    v.duration = v.duration + dt
-  end
-
-  while self.visuals[1] and self.visuals[1].duration > self.duration do
-    table.remove(self.visuals, 1)
-  end
-
-  for _, event in ipairs(ep.filter(state.events, {halted = false, button = 1})) do
-    table.insert(self.visuals, {duration = 0, x = event.world.x, y = event.world.y})
-
-    if not state.hoveringEntity and state.player.inventory:getMouseItem() then
-      state.player.command = commands.Drop(state.player, state.player.inventory:getMouseItem(), event.world)
-    elseif not state.hoveringEntity then
-      state.player.command = commands.Move(Point(event.world.x, event.world.y), state.player.radius)
-    elseif rules.canPickUp(state.player, state.hoveringEntity) then
-      state.player.command = commands.PickUp(state.hoveringEntity, state.player)
-    elseif rules.canAttack(state.player, state.hoveringEntity) then
-      if getmetatable(state.player.command) ~= commands.Swing or state.player.command.target ~= state.hoveringEntity then
-        state.player.command = commands.Attack(state.hoveringEntity)
+function System:update(dt)
+  local i = 0
+  function updateNext()
+    i = i + 1
+    if i <= #self.names then
+      if self.byName[self.names[i]].update then
+        self.byName[self.names[i]]:update(updateNext, self.state, dt)
+      else
+        updateNext()
       end
-    else
-      state.player:say("I can't do that")
+    end
+  end
+  updateNext()
+end
+
+function System:draw()
+  local i = 0
+  function drawNext()
+    i = i + 1
+    if i <= #self.names then
+      if self.byName[self.names[i]].draw then
+        self.byName[self.names[i]]:draw(drawNext, self.state)
+      else
+        drawNext()
+      end
+    end
+  end
+  drawNext()
+end
+
+function System:dispatch(action, obj)
+  for _, name in ipairs(self.names) do
+    local method = self.byName[name][action]
+    if method and method(self.byName[name], obj, self.state) == false then
+      break
     end
   end
 end
 
-function WorldMouseClick:draw()
-  for _, v in ipairs(self.visuals) do
-    love.graphics.setColor(0.1, 1, 0.1, 1 - v.duration / self.duration)
-    love.graphics.circle("line", v.x, v.y, v.duration / self.duration * 20)
-  end
-  love.graphics.setColor(1, 1, 1, 1)
+function System:mousepressed(x, y, button, istouch, presses)
+  self:dispatch("MOUSE_PRESSED", ep.Event("mouse", "click", {
+    button = button,
+    istouch = istouch,
+    presses = presses,
+    screen = Point(x, y),
+    world = self.state.camera:screenToWorldPos(Point(x, y))
+  }))
 end
 
-return {
-  Planter = Planter,
-  WorldMouseClick = WorldMouseClick,
-}
+function System:keypressed(key, scancode, isrepeat)
+  self:dispatch("KEY_PRESSED", ep.Event("keyboard", "keypressed", {
+    key = key,
+    scancode = scancode,
+    isrepeat = isrepeat,
+  }))
+end
+
+local Inventory = Object:extend()
+function Inventory:MOUSE_PRESSED(event, state)
+  state.entities.player.inventory:processMouseEvent(event)
+  return not event.halted
+end
+
+local AbsoluteUI = Object:extend()
+function AbsoluteUI:draw(next, state)
+  love.graphics.push()
+  love.graphics.origin()
+  state.entities.player.inventory:draw()
+  state.entities.player.speech:draw()
+  love.graphics.pop()
+  next()
+end
+
+function createWorld()
+  local system = System()
+  system:add('pause', Pause())
+  system:add('camera', Camera())
+  system:add('inventory', Inventory())
+  system:add('entities', Entities())
+  system:add('planting', Planting())
+  system:add('player', PlayerControl())
+  system:add('ui', AbsoluteUI())
+  system:ready()
+  return system
+end
+
+return {createWorld = createWorld}

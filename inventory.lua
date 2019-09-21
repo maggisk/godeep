@@ -156,11 +156,16 @@ function Inventory:update(args)
 end
 
 function Inventory:draw()
+  love.graphics.push()
+  love.graphics.origin()
+
   self.bar:draw()
 
   if self.state.mouse then
     self.state.mouse.image:draw(Point(love.mouse.getX(), love.mouse.getY() + self.state.mouse.image:getHeight() / 2))
   end
+
+  love.graphics.pop()
 end
 
 function Inventory:drawSticky()

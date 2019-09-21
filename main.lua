@@ -4,8 +4,8 @@ function love.load()
   love.window.setMode(1280, 720)
   love.window.setFullscreen(true)
 
-  local World = require "world"
-  world = World()
+  local systems = require "systems"
+  world = systems.createWorld()
 end
 
 function love.update(dt)
@@ -17,7 +17,7 @@ function love.draw()
 end
 
 function love.keypressed(key, scancode, isrepeat)
-  --print("keypressed", key, scancode, isrepeat)
+  world:keypressed(key, scancode, isrepeat)
 end
 
 function love.mousepressed(x, y, button, istouch, presses)

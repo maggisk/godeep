@@ -69,9 +69,4 @@ function Player:draw()
   self:getImage():draw(self.pos)
 end
 
-function Player:drawAbsolute()
-  self.speech:draw()
-  self.inventory:draw()
-end
-
 return Player
