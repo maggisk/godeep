@@ -54,7 +54,6 @@ function Entities:findHoveringEntity(entities, camera)
 end
 
 function Entities:draw(next)
-  love.graphics.clear(0.1, 0.2, 0, 1)
   for _, entity in pairs(self.state.visibleEntities) do
     local hovering = (entity == self.state.hoveringEntity)
     if hovering then love.graphics.setShader(shaders.brighten) end

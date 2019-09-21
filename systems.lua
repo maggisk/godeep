@@ -6,6 +6,7 @@ local Camera = require "systems/camera"
 local Planting = require "systems/planting"
 local Entities = require "systems/entities"
 local PlayerControl = require "systems/playercontrol"
+local GroundTexture = require "systems/groundtexture"
 
 local System = Object:extend()
 function System:new()
@@ -105,6 +106,7 @@ function createWorld()
   local system = System()
   system:add('pause', Pause())
   system:add('camera', Camera())
+  system:add('ground', GroundTexture())
   system:add('inventory', Inventory())
   system:add('entities', Entities())
   system:add('planting', Planting())
