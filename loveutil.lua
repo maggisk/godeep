@@ -28,8 +28,18 @@ function snapshot(...)
   end
 end
 
+function copyCanvas(original)
+  local prev = love.graphics.getCanvas()
+  local copy = love.graphics.newCanvas(original:getDimensions())
+  love.graphics.setCanvas(copy)
+  love.graphics.draw(original, 0, 0)
+  love.graphics.setCanvas(prev)
+  return copy
+end
+
 return {
   graphics = {
     snapshot = snapshot,
+    copyCanvas = copyCanvas,
   },
 }
