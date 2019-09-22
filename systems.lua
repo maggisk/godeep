@@ -7,6 +7,7 @@ local Planting = require "systems/planting"
 local Entities = require "systems/entities"
 local PlayerControl = require "systems/playercontrol"
 local GroundTexture = require "systems/groundtexture"
+local FPS = require "systems/fps"
 
 local System = Object:extend()
 function System:new()
@@ -112,6 +113,7 @@ function createWorld()
   system:add('planting', Planting())
   system:add('player', PlayerControl())
   system:add('ui', AbsoluteUI())
+  system:add('fps', FPS())
   system:ready()
   return system
 end
