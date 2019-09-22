@@ -20,7 +20,8 @@ local Rock = Object:extend()
 properties.getters(Rock, {image = "getImage"})
 
 Rock.radius = 75
-Rock.tags = {static = true, takesDamageFrom = {treecutter = true}}
+Rock.tags = {static = true, minimap = true, takesDamageFrom = {treecutter = true}}
+Rock.minimapImage = images[#images]
 
 function Rock:new(x, y)
   self.pos = Point(x, y)

@@ -32,9 +32,10 @@ local SPEED = 300 -- pixels per second
 
 local Player = Object:extend()
 properties.getters(Player, {image = "getImage"})
+Player.minimapImage = images[direction.down]
 Player.speed = SPEED -- TODO: make dynamic
 Player.radius = 10
-Player.tags = {player = true, alive = true, damage = 1, swingTime = 0.5, range = 1}
+Player.tags = {player = true, alive = true, minimap = true ,damage = 1, swingTime = 0.5, range = 1}
 
 function Player:new(x, y)
   self.pos = Point(x, y)

@@ -8,6 +8,7 @@ local Entities = require "systems/entities"
 local PlayerControl = require "systems/playercontrol"
 local GroundTexture = require "systems/groundtexture"
 local FPS = require "systems/fps"
+local Minimap = require "systems/minimap"
 
 local System = Object:extend()
 function System:new()
@@ -87,6 +88,10 @@ function System:keypressed(key, scancode, isrepeat)
   }))
 end
 
+function System:wheelmoved(x, y)
+  self:dispatch("WHEEL_MOVED", ep.Event("mouse", "wheel", {x = x, y = y}))
+end
+
 local Inventory = Object:extend()
 function Inventory:MOUSE_PRESSED(event, state)
   state.entities.player.inventory:processMouseEvent(event)
@@ -105,6 +110,7 @@ end
 
 function createWorld()
   local system = System()
+  system:add('minimap', Minimap())
   system:add('pause', Pause())
   system:add('camera', Camera())
   system:add('ground', GroundTexture())

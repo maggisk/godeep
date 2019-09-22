@@ -23,3 +23,7 @@ end
 function love.mousepressed(x, y, button, istouch, presses)
   world:mousepressed(x, y, button, istouch, pressed)
 end
+
+function love.wheelmoved(x, y)
+  world:wheelmoved(x, y)
+end

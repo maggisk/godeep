@@ -8,6 +8,14 @@ function module.toboolean(v)
   return not not v
 end
 
+function module.keys(t)
+  local keys = {}
+  for k, _ in pairs(t) do
+    table.insert(keys, k)
+  end
+  return keys
+end
+
 function module.spawn(n, entity, cls)
   if not entity.newEntities then
     entity.newEntities = {}
