@@ -1,10 +1,10 @@
 local Object = require "classic"
+local Point = require "point"
 local util = require "util"
 local loveutil = require "loveutil"
 
 -- TODO:
 -- * ground texture
--- * cursor should stay at same world coordinates when zooming in/out
 -- * update Camera class to handle the zooming
 
 local MIN_ZOOM = 2
@@ -101,7 +101,7 @@ end
 
 local Minimap = Object:extend()
 function Minimap:new()
-  self.state = {isOpen = false, zoom = 5, offset = {x = 0, y = 0}}
+  self.state = {isOpen = false, zoom = 5, pos = Point(0, 0)}
   self.images = {}
   self.fogofwar = FogOfWar()
 end
@@ -122,27 +122,25 @@ end
 
 function Minimap:maybeMove(coord, dt, cond)
   if cond then
-    self.state.offset[coord] = self.state.offset[coord] + dt * self.state.zoom * SCROLL_SPEED
+    self.state.pos[coord] = self.state.pos[coord] + dt * self.state.zoom * SCROLL_SPEED
   end
 end
 
-function Minimap:draw(next, state)
+function Minimap:draw(next)
   if not self.state.isOpen then
     return next()
   end
 
-  local center = state.entities.player.pos
-
   love.graphics.push()
   love.graphics.scale(1 / self.state.zoom)
-  love.graphics.translate(-center.x - self.state.offset.x + love.graphics.getWidth() / 2 * self.state.zoom,
-                          -center.y - self.state.offset.y + love.graphics.getHeight() / 2 * self.state.zoom)
+  love.graphics.translate(-self.state.pos.x + love.graphics.getWidth()  / 2 * self.state.zoom,
+                          -self.state.pos.y + love.graphics.getHeight() / 2 * self.state.zoom)
 
   for _, entity in ipairs(self.state.entities) do
     self:getImage(entity):draw(entity.pos)
   end
 
-  self.fogofwar:draw(center:copy():add(self.state.offset), self.state.zoom)
+  self.fogofwar:draw(self.state.pos, self.state.zoom)
 
   love.graphics.pop()
 end
@@ -162,7 +160,7 @@ end
 function Minimap:KEY_PRESSED(event, state)
   if event.key == "tab" then
     self.state.entities = {}
-    self.state.offset = {x = 0, y = 0}
+    self.state.pos = state.camera.pos:copy()
     self.state.isOpen = not self.state.isOpen
 
     if self.state.isOpen then
@@ -179,7 +177,20 @@ function Minimap:MOUSE_PRESSED()
 end
 
 function Minimap:WHEEL_MOVED(event)
+  -- get world coordinates of mouse cursor
+  local w, h = love.graphics.getDimensions()
+  local x, y = love.mouse.getPosition()
+  local wx = self.state.pos.x + (x - w / 2) * self.state.zoom
+  local wy = self.state.pos.y + (y - h / 2) * self.state.zoom
+
+  -- set new zoom level
   self.state.zoom = util.clamp(self.state.zoom - event.y, MIN_ZOOM, MAX_ZOOM)
+
+  -- change position so that mouse cursor stays at same world coordinates as before
+  self.state.pos:setX(wx - (x - w / 2) * self.state.zoom)
+                :setY(wy - (y - h / 2) * self.state.zoom)
+
+  return false -- halt event propagation
 end
 
 return Minimap
