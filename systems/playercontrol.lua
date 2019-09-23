@@ -5,7 +5,7 @@ local Point = require "point"
 
 local PlayerControl = Object:extend()
 
-function PlayerControl:MOUSE_PRESSED(event, state)
+function PlayerControl:MOUSEPRESSED(event, state)
   local player = state.entities.player
 
   if not event.halted and event.button == 1 then

@@ -1,5 +1,6 @@
 local Object = require "classic"
 local Camera = require "camera"
+local Point = require "point"
 
 local CameraSystem = Object:extend()
 function CameraSystem:new()
@@ -10,7 +11,7 @@ end
 function CameraSystem:update(next, state, dt)
   self.camera:follow(state.entities.player.pos)
   self.camera:update(dt)
-  next()
+  return next
 end
 
 function CameraSystem:draw(next)
@@ -18,6 +19,15 @@ function CameraSystem:draw(next)
   self.camera:apply()
   next()
   love.graphics.pop()
+end
+
+function CameraSystem:MOUSEPRESSED(e)  self:extend(e) end
+function CameraSystem:MOUSERELEASED(e) self:extend(e) end
+function CameraSystem:MOUSEMOVED(e)    self:extend(e) end
+
+function CameraSystem:extend(event)
+  event.screen = Point(event.x, event.y)
+  event.world = self.camera:screenToWorldPos(event.screen)
 end
 
 return CameraSystem

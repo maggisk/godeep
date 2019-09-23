@@ -19,7 +19,7 @@ function Planting:update(next, state)
     self.canPlant = state.entities.entities:canAddWithoutCollisions(self.entity, state.entities.player)
   end
 
-  next()
+  return next
 end
 
 function Planting:draw(next)
@@ -28,10 +28,10 @@ function Planting:draw(next)
     self.entity:draw()
     love.graphics.setColor(1, 1, 1, 1)
   end
-  next()
+  return next
 end
 
-function Planting:MOUSE_PRESSED(event, state)
+function Planting:MOUSEPRESSED(event, state)
   if self.entity and self.canPlant then
     state.entities.player.command = commands.Plant(self.item, self.entity, state.entities.entities)
   end

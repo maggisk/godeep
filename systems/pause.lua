@@ -9,7 +9,7 @@ end
 
 function Pause:update(next)
   if not self.state.isPaused then
-    next()
+    return next
   end
 end
 
@@ -32,7 +32,7 @@ function Pause:draw(next)
   end
 end
 
-function Pause:KEY_PRESSED(event)
+function Pause:KEYPRESSED(event)
   if event.key == "pause" then
     self.state.isPaused = not self.state.isPaused
     return false

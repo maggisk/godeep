@@ -16,6 +16,14 @@ function module.keys(t)
   return keys
 end
 
+function module.zip(keys, values)
+  local hash = {}
+  for i, key in ipairs(keys) do
+    hash[key] = values[i]
+  end
+  return hash
+end
+
 function module.hasValue(t, v)
   for _, v2 in pairs(t) do
     if v == v2 then return true end

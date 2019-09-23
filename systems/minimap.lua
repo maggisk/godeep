@@ -98,7 +98,6 @@ function FogOfWar:createCanvas()
   return canvas
 end
 
-
 local Minimap = Object:extend()
 function Minimap:new()
   self.state = {isOpen = false, zoom = 5, pos = Point(0, 0)}
@@ -116,7 +115,7 @@ function Minimap:update(next, state, dt)
     self:maybeMove("y",  dt, y == h - 1 or love.keyboard.isDown("down", "s"))
   else
     self.fogofwar:reveal(state.entities.player.pos)
-    next()
+    return next
   end
 end
 
@@ -128,7 +127,7 @@ end
 
 function Minimap:draw(next)
   if not self.state.isOpen then
-    return next()
+    return next
   end
 
   love.graphics.push()
@@ -157,7 +156,7 @@ function Minimap:getImage(entity)
   return self.images[cls]
 end
 
-function Minimap:KEY_PRESSED(event, state)
+function Minimap:KEYPRESSED(event, state)
   if event.key == "tab" then
     self.state.entities = {}
     self.state.pos = state.camera.pos:copy()
@@ -172,11 +171,11 @@ function Minimap:KEY_PRESSED(event, state)
   return not self.state.isOpen
 end
 
-function Minimap:MOUSE_PRESSED()
+function Minimap:MOUSEPRESSED()
   return not self.state.isOpen
 end
 
-function Minimap:WHEEL_MOVED(event)
+function Minimap:WHEELMOVED(event)
   -- get world coordinates of mouse cursor
   local w, h = love.graphics.getDimensions()
   local x, y = love.mouse.getPosition()

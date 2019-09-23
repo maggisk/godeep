@@ -1,6 +1,7 @@
 local Object = require "classic"
 local Point = require "point"
-local ep = require "eventprocessing"
+local Event = require "event"
+local util = require "util"
 local Pause = require "systems/pause"
 local Camera = require "systems/camera"
 local Planting = require "systems/planting"
@@ -9,6 +10,21 @@ local PlayerControl = require "systems/playercontrol"
 local GroundTexture = require "systems/groundtexture"
 local FPS = require "systems/fps"
 local Minimap = require "systems/minimap"
+
+-- love2d callbacks we need in the game
+local callbacks = {
+  update        = {"dt"},
+  draw          = {},
+  quit          = {},
+  keypressed    = {"key", "scancode", "isrepeat"},
+  keyreleased   = {"key", "scancode"},
+  textedited    = {"text", "start", "length"},
+  textinput     = {"text"},
+  mousepressed  = {"x", "y", "button", "istouch", "presses"},
+  mousereleased = {"x", "y", "button", "istouch", "presses"},
+  mousemoved    = {"x", "y", "dx", "dy", "istouch"},
+  wheelmoved    = {"x", "y"},
+}
 
 local System = Object:extend()
 function System:new()
@@ -32,68 +48,45 @@ function System:ready()
 end
 
 function System:update(dt)
-  local i = 0
-  function updateNext()
-    i = i + 1
-    if i <= #self.names then
-      if self.byName[self.names[i]].update then
-        self.byName[self.names[i]]:update(updateNext, self.state, dt)
-      else
-        updateNext()
-      end
-    end
-  end
-  updateNext()
+  self:callSubsystems("update", dt)
 end
 
 function System:draw()
-  local i = 0
-  function drawNext()
-    i = i + 1
-    if i <= #self.names then
-      if self.byName[self.names[i]].draw then
-        self.byName[self.names[i]]:draw(drawNext, self.state)
-      else
-        drawNext()
-      end
-    end
-  end
-  drawNext()
+  self:callSubsystems("draw")
 end
 
-function System:dispatch(action, obj)
+function System:callSubsystems(methodName, arg1)
+  local i = 0
+  function loop()
+    i = i + 1
+    local system = self.byName[self.names[i]]
+    if system and (not system[methodName] or system[methodName](system, loop, self.state, arg1) == loop) then
+      return loop() -- tail call eliminated? or should we use goto?
+    end
+  end
+  loop()
+end
+
+function System:dispatch(action, event)
   for _, name in ipairs(self.names) do
     local method = self.byName[name][action]
-    if method and method(self.byName[name], obj, self.state) == false then
+    if method and method(self.byName[name], event, self.state) == false then
       break
     end
   end
 end
 
-function System:mousepressed(x, y, button, istouch, presses)
-  self:dispatch("MOUSE_PRESSED", ep.Event("mouse", "click", {
-    button = button,
-    istouch = istouch,
-    presses = presses,
-    screen = Point(x, y),
-    world = self.state.camera:screenToWorldPos(Point(x, y))
-  }))
-end
-
-function System:keypressed(key, scancode, isrepeat)
-  self:dispatch("KEY_PRESSED", ep.Event("keyboard", "keypressed", {
-    key = key,
-    scancode = scancode,
-    isrepeat = isrepeat,
-  }))
-end
-
-function System:wheelmoved(x, y)
-  self:dispatch("WHEEL_MOVED", ep.Event("mouse", "wheel", {x = x, y = y}))
+function System:callback(name, ...)
+  if self[name] then
+    self[name](self, ...)
+  else
+    local event = Event(name, util.zip(callbacks[name], {...}))
+    self:dispatch(name:upper(), event)
+  end
 end
 
 local Inventory = Object:extend()
-function Inventory:MOUSE_PRESSED(event, state)
+function Inventory:MOUSEPRESSED(event, state)
   state.entities.player.inventory:processMouseEvent(event)
   return not event.halted
 end
@@ -124,4 +117,7 @@ function createWorld()
   return system
 end
 
-return {createWorld = createWorld}
+return {
+  createWorld = createWorld,
+  callbacks = callbacks,
+}

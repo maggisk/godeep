@@ -32,7 +32,7 @@ function GroundTexture:draw(next, state)
     end
   end
 
-  next()
+  return next
 end
 
 function GroundTexture:getCanvas(x, y)

@@ -29,12 +29,16 @@ function snapshot(...)
   end
 end
 
+-- returns a new canvas identical to the given one. is there an easier way to do this?
 function copyCanvas(original)
+  love.graphics.push()
+  love.graphics.origin()
   local prev = love.graphics.getCanvas()
   local copy = love.graphics.newCanvas(original:getDimensions())
   love.graphics.setCanvas(copy)
   love.graphics.draw(original, 0, 0)
   love.graphics.setCanvas(prev)
+  love.graphics.pop()
   return copy
 end
 

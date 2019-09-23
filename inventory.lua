@@ -25,7 +25,7 @@ function Inventory:new()
   local w, h = love.graphics.getDimensions()
   self.bar = UIBox(nil, 0, h - 60, w, 60, {
     color = {0, 0, 0, 1},
-    click = function(e) e:halt() end,
+    mousepressed = function(e) e:halt() end,
     draw = function() self:drawSticky() end,
   })
 
@@ -40,7 +40,7 @@ function Inventory:_addBox(slotKey)
   self.uiboxes[slotKey] = UIBox(self.bar, #U.keys(self.uiboxes) * HEIGHT, PADDING, HEIGHT - PADDING * 2, HEIGHT - PADDING * 2, {
     slot = slotKey,
     color = {1, 1, 1, 1},
-    click = function(e, box) self:handleSlotClick(e, slotKey) end,
+    mousepressed = function(e, box) self:handleSlotClick(e, slotKey) end,
     draw = function() self:drawSlot(slotKey) end,
   })
 end

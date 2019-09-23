@@ -1,8 +1,7 @@
 local Object = require "classic"
 
 local Event = Object:extend()
-function Event:new(device, type, attr)
-  self.device = device
+function Event:new(type, attr)
   self.type = type
   self.halted = false
   for k, v in pairs(attr) do
@@ -27,23 +26,4 @@ function Event:callMethod(obj, methodName, ...)
   end
 end
 
-function filter(events, attributes)
-  r = {}
-
-  for _, event in ipairs(events) do
-    for k, v in pairs(attributes) do
-      if event[k] ~= v then
-        goto skip
-      end
-    end
-    table.insert(r, event)
-    ::skip::
-  end
-
-  return r
-end
-
-return {
-  Event = Event,
-  filter = filter,
-}
+return Event

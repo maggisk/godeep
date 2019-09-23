@@ -38,7 +38,7 @@ function Entities:update(next, state, dt)
   local left, top, right, bottom = state.camera:visibleRect()
   self.state.visibleEntities = self.state.entities:findVisibleEntitiesInRect(top, left, right, bottom)
   self.state.hoveringEntity = self:findHoveringEntity(self.state.visibleEntities, state.camera)
-  next()
+  return next
 end
 
 function Entities:findHoveringEntity(entities, camera)
@@ -61,7 +61,7 @@ function Entities:draw(next)
     if hovering then love.graphics.setShader() end
   end
 
-  next()
+  return next
 end
 
 return Entities

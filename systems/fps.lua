@@ -13,7 +13,7 @@ function FPS:draw(next)
     love.graphics.pop()
   end
 
-  next()
+  return next
 end
 
 function FPS:KEY_PRESSED(event)
