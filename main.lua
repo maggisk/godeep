@@ -2,7 +2,7 @@ local world
 
 function love.load()
   love.window.setMode(1280, 720)
-  love.window.setFullscreen(true)
+  love.window.setFullscreen(true, "exclusive")
 
   local systems = require "systems"
   world = systems.createWorld()
