@@ -120,7 +120,8 @@ function Minimap:update(next, state, dt)
 end
 
 function Minimap:maybeMove(coord, dt, cond)
-  if cond then
+  -- NB: relative mode means map panning is active
+  if cond and love.mouse.getRelativeMode() == false then
     self.state.pos[coord] = self.state.pos[coord] + dt * self.state.zoom * SCROLL_SPEED
   end
 end
@@ -158,11 +159,11 @@ end
 
 function Minimap:KEYPRESSED(event, state)
   if event.key == "tab" then
-    self.state.entities = {}
-    self.state.pos = state.camera.pos:copy()
     self.state.isOpen = not self.state.isOpen
 
     if self.state.isOpen then
+      -- initialize state when user opens the minimap
+      self.state.pos = state.camera.pos:copy()
       self.state.entities = util.keys(state.entities.entities:byTag("minimap"))
       table.sort(self.state.entities, function(a, b) return a.pos.y < b.pos.y end)
     end
@@ -171,25 +172,53 @@ function Minimap:KEYPRESSED(event, state)
   return not self.state.isOpen
 end
 
-function Minimap:MOUSEPRESSED()
+function Minimap:MOUSEPRESSED(e)
+  if self.state.isOpen and e.button == 1 then
+    -- relative mode makes sure edges of screen don't limit mouse movement
+    love.mouse.setRelativeMode(true)
+  end
+
+  return not self.state.isOpen
+end
+
+function Minimap:MOUSERELEASED(e)
+  if self.state.isOpen and e.button == 1 then
+    love.mouse.setRelativeMode(false)
+
+    -- prevent map starting to scroll immediately when mouse button is released caused by mouse being at the edge of screen
+    local x, y = love.mouse.getPosition()
+    local w, h = love.graphics.getDimensions()
+    love.mouse.setPosition(util.clamp(x, 1, w - 2), util.clamp(y, 1, h - 2))
+  end
+
+  return not self.state.isOpen
+end
+
+function Minimap:MOUSEMOVED(event)
+  if self.state.isOpen and love.mouse.isDown(1) then
+    self.state.pos:add({x = -event.dx * self.state.zoom, y = -event.dy * self.state.zoom})
+  end
+
   return not self.state.isOpen
 end
 
 function Minimap:WHEELMOVED(event)
-  -- get world coordinates of mouse cursor
-  local w, h = love.graphics.getDimensions()
-  local x, y = love.mouse.getPosition()
-  local wx = self.state.pos.x + (x - w / 2) * self.state.zoom
-  local wy = self.state.pos.y + (y - h / 2) * self.state.zoom
+  if self.state.isOpen then
+    -- get world coordinates of mouse cursor
+    local w, h = love.graphics.getDimensions()
+    local x, y = love.mouse.getPosition()
+    local wx = self.state.pos.x + (x - w / 2) * self.state.zoom
+    local wy = self.state.pos.y + (y - h / 2) * self.state.zoom
 
-  -- set new zoom level
-  self.state.zoom = util.clamp(self.state.zoom - event.y, MIN_ZOOM, MAX_ZOOM)
+    -- set new zoom level
+    self.state.zoom = util.clamp(self.state.zoom - event.y, MIN_ZOOM, MAX_ZOOM)
 
-  -- change position so that mouse cursor stays at same world coordinates as before
-  self.state.pos:setX(wx - (x - w / 2) * self.state.zoom)
-                :setY(wy - (y - h / 2) * self.state.zoom)
+    -- change position so that mouse cursor stays at same world coordinates as before
+    self.state.pos:setX(wx - (x - w / 2) * self.state.zoom)
+                  :setY(wy - (y - h / 2) * self.state.zoom)
+  end
 
-  return false -- halt event propagation
+  return not self.state.isOpen
 end
 
 return Minimap

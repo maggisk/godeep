@@ -78,4 +78,8 @@ function Point:setY(y)
   return self
 end
 
+function Point:xy()
+  return self.x, self.y
+end
+
 return Point
