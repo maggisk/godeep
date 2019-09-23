@@ -16,6 +16,13 @@ function module.keys(t)
   return keys
 end
 
+function module.hasValue(t, v)
+  for _, v2 in pairs(t) do
+    if v == v2 then return true end
+  end
+  return false
+end
+
 function module.spawn(n, entity, cls)
   if not entity.newEntities then
     entity.newEntities = {}

@@ -1,11 +1,12 @@
+local util = require "util"
+
 local world
 
-function love.load()
+function love.load(args)
   love.window.setMode(1280, 720)
-  love.window.setFullscreen(true, "exclusive")
+  love.window.setFullscreen(not util.hasValue(args, "--fullscreen=false"), "exclusive")
 
-  local systems = require "systems"
-  world = systems.createWorld()
+  world = require("systems").createWorld()
 end
 
 function love.update(dt)
