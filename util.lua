@@ -16,6 +16,14 @@ function module.keys(t)
   return keys
 end
 
+function module.ifilter(t, fn)
+  local r = {}
+  for i, v in ipairs(t) do
+    if fn(v, i) then r[#r+1] = v end
+  end
+  return r
+end
+
 function module.zip(keys, values)
   local hash = {}
   for i, key in ipairs(keys) do
@@ -30,6 +38,25 @@ function module.hasValue(t, v)
   end
   return false
 end
+
+function module.shuffle(t)
+  for i = #t, 2, -1 do
+    local r = love.math.random(i)
+    t[i], t[r] = t[r], t[i]
+  end
+end
+
+function module.rpick(t)
+  return t[love.math.random(#t)]
+end
+
+function module.remap(value, minValue, maxValue, minReturn, maxReturn)
+  return minReturn + (maxReturn - minReturn) * ((value - minValue) / (maxValue - minValue))
+end
+
+-- function module.clampRemap(value, minValue, maxValue, minReturn, maxReturn)
+--   return module.clamp(module.remap(value, minValue, maxValue, minReturn, maxReturn), minReturn, maxReturn)
+-- end
 
 function module.spawn(n, entity, cls)
   if not entity.newEntities then

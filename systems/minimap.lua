@@ -8,7 +8,7 @@ local loveutil = require "loveutil"
 -- * update Camera class to handle the zooming
 
 local MIN_ZOOM = 2
-local MAX_ZOOM = 15
+local MAX_ZOOM = 30
 local SCROLL_SPEED = 800 -- px per second
 local FOG_CANVAS_SIZE = 1000
 
@@ -17,6 +17,7 @@ function FogOfWar:new()
   self.canvases = {}
   -- blank canvas with nothing revealed that we'll copy on-the-fly as needed
   self.blankCanvas = self:createCanvas()
+  self.enabled = true
 end
 
 function FogOfWar:floor(n)
@@ -64,8 +65,9 @@ function FogOfWar:reveal(pos)
 end
 
 function FogOfWar:draw(center, zoom)
-  local w, h = love.graphics.getDimensions()
+  if not self.enabled then return end
 
+  local w, h = love.graphics.getDimensions()
   local left = self:floor(center.x - w / 2 * zoom)
   local top  = self:floor(center.y - h / 2 * zoom)
 
@@ -126,7 +128,7 @@ function Minimap:maybeMove(coord, dt, cond)
   end
 end
 
-function Minimap:draw(next)
+function Minimap:draw(next, state)
   if not self.state.isOpen then
     return next
   end
@@ -135,6 +137,8 @@ function Minimap:draw(next)
   love.graphics.scale(1 / self.state.zoom)
   love.graphics.translate(-self.state.pos.x + love.graphics.getWidth()  / 2 * self.state.zoom,
                           -self.state.pos.y + love.graphics.getHeight() / 2 * self.state.zoom)
+
+  state.entities.world:draw()
 
   for _, entity in ipairs(self.state.entities) do
     self:getImage(entity):draw(entity.pos)
@@ -158,6 +162,10 @@ function Minimap:getImage(entity)
 end
 
 function Minimap:KEYPRESSED(event, state)
+  if self.state.isOpen and event.key == "f12" then
+    -- for testing/debugging
+    self.fogofwar.enabled = not self.fogofwar.enabled
+  end
   if event.key == "tab" then
     self.state.isOpen = not self.state.isOpen
 

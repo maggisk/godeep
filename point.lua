@@ -2,8 +2,7 @@ local Object = require 'classic'
 local Point = Object:extend("Point")
 
 function Point:new(x, y)
-  self.x = x
-  self.y = y
+  self:setXY(x, y)
 end
 
 function Point:copy()
@@ -14,21 +13,21 @@ function Point:eq(other)
   return self.x == other.x and self.y == other.y
 end
 
+function Point:setXY(x, y)
+  self.x, self.y = x, y
+  return self
+end
+
 function Point:set(other)
-  self.x = other.x
-  self.y = other.y
+  return self:setXY(other.x, other.y)
 end
 
 function Point:add(other)
-  self.x = self.x + other.x
-  self.y = self.y + other.y
-  return self
+  return self:setXY(self.x + other.x, self.y + other.y)
 end
 
 function Point:subtract(other)
-  self.x = self.x - other.x
-  self.y = self.y - other.y
-  return self
+  return self:setXY(self.x - other.x, self.y - other.y)
 end
 
 function Point:length()
@@ -36,19 +35,15 @@ function Point:length()
 end
 
 function Point:setLength(length)
-  self:multiply(length / self:length())
-  return self
+  return self:multiply(length / self:length())
 end
 
 function Point:normalize()
-  self:setLength(1)
-  return self
+  return self:setLength(1)
 end
 
 function Point:multiply(ratio)
-  self.x = self.x * ratio
-  self.y = self.y * ratio
-  return self
+  return self:setXY(self.x * ratio, self.y * ratio)
 end
 
 function Point:distanceTo(other)
