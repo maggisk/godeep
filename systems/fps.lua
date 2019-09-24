@@ -16,7 +16,7 @@ function FPS:draw(next)
   return next
 end
 
-function FPS:KEY_PRESSED(event)
+function FPS:KEYPRESSED(event)
   if event.key == "f" and love.keyboard.isDown("lctrl") and love.keyboard.isDown("lalt") then
     self.state.showFPS = not self.state.showFPS
     return false
