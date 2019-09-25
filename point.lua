@@ -59,6 +59,10 @@ function Point:rotate(rad)
   return self
 end
 
+function Point:move(angle, distance)
+  return self:setXY(self.x + math.cos(angle) * distance, self.y + math.sin(angle) * distance)
+end
+
 function Point:getAngle()
   return math.atan2(self.y, self.x)
 end

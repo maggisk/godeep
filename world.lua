@@ -36,6 +36,10 @@ function Area:getRadius(angle)
   return util.remap(r, 0, 1, MIN_RADIUS, MAX_RADIUS)
 end
 
+function Area:getBorderPoint(angle)
+  return self.pos:copy():move(angle, self:getRadius(angle))
+end
+
 function Area:contains(p, padding)
   if p.x < self.pos.x - MAX_RADIUS or p.x > self.pos.x + MAX_RADIUS or
      p.y < self.pos.y - MAX_RADIUS or p.y > self.pos.y + MAX_RADIUS then
@@ -46,6 +50,7 @@ function Area:contains(p, padding)
   return vec:length() + (padding or 0) <= self:getRadius(vec:getAngle())
 end
 
+
 local World = Object:extend()
 function World:new()
   self.entities = EntityManager()
@@ -54,6 +59,18 @@ end
 
 function World:draw()
   love.graphics.clear(0, 0.312, 0.48, 1)
+
+  -- draw black border between ocean and land
+  love.graphics.setColor(0, 0, 0, 1)
+  love.graphics.setLineWidth(10)
+  for _, area in ipairs(self.areas) do
+    love.graphics.push()
+    love.graphics.translate(area.pos.x, area.pos.y)
+    love.graphics.line(area.outlines)
+    love.graphics.pop()
+  end
+
+  -- draw the ground
   for _, area in ipairs(self.areas) do
     love.graphics.push()
     love.graphics.translate(area.pos.x, area.pos.y)
@@ -61,13 +78,11 @@ function World:draw()
     for _, polygon in ipairs(area.polygons) do
       love.graphics.polygon("fill", polygon)
     end
-    -- outlines to the ocean would be nice, but not between ground areas
-    -- love.graphics.setColor(0, 0, 0, 0.5)
-    -- love.graphics.setLineWidth(1)
-    -- love.graphics.line(area.outlines)
-    love.graphics.setColor(1, 1, 1, 1)
     love.graphics.pop()
   end
+
+  love.graphics.setLineWidth(1)
+  love.graphics.setColor(1, 1, 1, 1)
 end
 
 function World:generate()
@@ -139,6 +154,36 @@ function World:findArea(p)
     if self.areas[i]:contains(p) then
       return self.areas[i]
     end
+  end
+end
+
+function World:bestAreaMatch(pos)
+  local distance = -math.huge
+  local best = nil
+
+  for _, area in ipairs(self.areas) do
+    local angle = pos:copy():subtract(area.pos):getAngle()
+    local distFromBorder = area:getRadius(angle) - pos:distanceTo(area.pos)
+    if distFromBorder > distance then
+      distance = distFromBorder
+      best = area
+    end
+  end
+
+  return best, distance
+end
+
+function World:contain(entity)
+  local area, _ = self:bestAreaMatch(entity.pos)
+  local angle = entity.pos:copy():subtract(area.pos):getAngle()
+  local border = area:getBorderPoint(angle)
+
+  if border:distanceTo(entity.pos) < entity.radius then
+    local distance = entity.radius - border:distanceTo(entity.pos)
+    local angle = border:copy():subtract(area.pos):getAngle()
+    local p1 = area:getBorderPoint(angle - 0.01)
+    local p2 = area:getBorderPoint(angle + 0.01)
+    entity.pos:add(p2:subtract(p1):rotate(math.pi / 2):setLength(distance))
   end
 end
 
