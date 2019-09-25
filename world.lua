@@ -102,6 +102,7 @@ function World:generate()
   end
 
   self:makeEntities(ent.Tree, AreaTypes.forest, love.math.random(800, 1200))
+  self:makeEntities(ent.Tree, AreaTypes.grass, love.math.random(80, 150))
   self:makeEntities(ent.Rock, AreaTypes.stone, love.math.random(300, 400))
   self:makeEntities(ent.Axe, AreaTypes.forest, 20)
   self:makeEntities(ent.PineCone, AreaTypes.forest, 100)

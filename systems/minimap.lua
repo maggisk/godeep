@@ -8,7 +8,7 @@ local loveutil = require "loveutil"
 -- * update Camera class to handle the zooming
 
 local MIN_ZOOM = 2
-local MAX_ZOOM = 30
+local MAX_ZOOM = 100
 local SCROLL_SPEED = 800 -- px per second
 local FOG_CANVAS_SIZE = 1000
 
