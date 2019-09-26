@@ -69,6 +69,16 @@ function System:callSubsystems(methodName, arg1)
 end
 
 function System:dispatch(action, event)
+  if DEBUG then
+    local hasCallbackHandler = function(name)
+      return self.byName[name][action] ~= nil
+    end
+
+    if not callbacks[action:lower()] and not util.iany(self.names, hasCallbackHandler) then
+      error("dispatching with no receiver: " .. action)
+    end
+  end
+
   for _, name in ipairs(self.names) do
     local method = self.byName[name][action] or self.byName[name].CATCHALL
     if method and method(self.byName[name], event, self.state) == false then

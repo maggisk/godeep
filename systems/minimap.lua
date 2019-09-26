@@ -161,11 +161,20 @@ function Minimap:getImage(entity)
   return self.images[cls]
 end
 
+function Minimap:getWorldCoordinates(x, y)
+  -- change screen coordinates to world coordinates
+  local w, h = love.graphics.getDimensions()
+  local wx = self.state.pos.x + (x - w / 2) * self.state.zoom
+  local wy = self.state.pos.y + (y - h / 2) * self.state.zoom
+  return wx, wy
+end
+
 function Minimap:KEYPRESSED(event, state)
-  if self.state.isOpen and event.key == "f12" then
-    -- for testing/debugging
+  if DEBUG and self.state.isOpen and event.key == "f12" then
+    -- for testing
     self.fogofwar.enabled = not self.fogofwar.enabled
   end
+
   if event.key == "tab" then
     self.state.isOpen = not self.state.isOpen
 
@@ -180,7 +189,13 @@ function Minimap:KEYPRESSED(event, state)
   if self.state.isOpen then return false end
 end
 
-function Minimap:MOUSEPRESSED(e)
+function Minimap:MOUSEPRESSED(e, state)
+  if DEBUG and self.state.isOpen and e.button == 2 then
+    -- right click minimap to move player anywhere on map in debug mode
+    local wx, wy = self:getWorldCoordinates(e.x, e.y)
+    state.world.player.pos:setXY(wx, wy)
+  end
+
   if self.state.isOpen and e.button == 1 then
     -- relative mode makes sure edges of screen don't limit mouse movement
     love.mouse.setRelativeMode(true)
@@ -213,15 +228,14 @@ end
 function Minimap:WHEELMOVED(event)
   if self.state.isOpen then
     -- get world coordinates of mouse cursor
-    local w, h = love.graphics.getDimensions()
     local x, y = love.mouse.getPosition()
-    local wx = self.state.pos.x + (x - w / 2) * self.state.zoom
-    local wy = self.state.pos.y + (y - h / 2) * self.state.zoom
+    local wx, wy = self:getWorldCoordinates(x, y)
 
     -- set new zoom level
     self.state.zoom = util.clamp(self.state.zoom - event.y, MIN_ZOOM, MAX_ZOOM)
 
     -- change position so that mouse cursor stays at same world coordinates as before
+    local w, h = love.graphics.getDimensions()
     self.state.pos:setX(wx - (x - w / 2) * self.state.zoom)
                   :setY(wy - (y - h / 2) * self.state.zoom)
   end
