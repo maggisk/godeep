@@ -37,6 +37,12 @@ function Pause:KEYPRESSED(event)
     self.state.isPaused = not self.state.isPaused
     return false
   end
+
+  if self.state.isPaused then return false end
+end
+
+function Pause:CATCHALL()
+  if self.state.isPaused then return false end
 end
 
 return Pause

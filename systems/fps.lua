@@ -7,13 +7,14 @@ end
 
 function FPS:draw(next)
   if self.state.showFPS then
+    next()
     love.graphics.push()
     love.graphics.origin()
     love.graphics.print("FPS: " .. love.timer.getFPS(), 10, 10)
     love.graphics.pop()
+  else
+    return next
   end
-
-  return next
 end
 
 function FPS:KEYPRESSED(event)

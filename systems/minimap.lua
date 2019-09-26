@@ -177,7 +177,7 @@ function Minimap:KEYPRESSED(event, state)
     end
   end
 
-  return not self.state.isOpen
+  if self.state.isOpen then return false end
 end
 
 function Minimap:MOUSEPRESSED(e)
@@ -186,7 +186,7 @@ function Minimap:MOUSEPRESSED(e)
     love.mouse.setRelativeMode(true)
   end
 
-  return not self.state.isOpen
+  if self.state.isOpen then return false end
 end
 
 function Minimap:MOUSERELEASED(e)
@@ -199,7 +199,7 @@ function Minimap:MOUSERELEASED(e)
     love.mouse.setPosition(util.clamp(x, 1, w - 2), util.clamp(y, 1, h - 2))
   end
 
-  return not self.state.isOpen
+  if self.state.isOpen then return false end
 end
 
 function Minimap:MOUSEMOVED(event)
@@ -207,7 +207,7 @@ function Minimap:MOUSEMOVED(event)
     self.state.pos:add({x = -event.dx * self.state.zoom, y = -event.dy * self.state.zoom})
   end
 
-  return not self.state.isOpen
+  if self.state.isOpen then return false end
 end
 
 function Minimap:WHEELMOVED(event)
@@ -226,7 +226,11 @@ function Minimap:WHEELMOVED(event)
                   :setY(wy - (y - h / 2) * self.state.zoom)
   end
 
-  return not self.state.isOpen
+  if self.state.isOpen then return false end
+end
+
+function Minimap:CATCHALL()
+  if self.state.isOpen then return false end
 end
 
 return Minimap

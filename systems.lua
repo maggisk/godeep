@@ -62,7 +62,7 @@ function System:callSubsystems(methodName, arg1)
     i = i + 1
     local system = self.byName[self.names[i]]
     if system and (not system[methodName] or system[methodName](system, loop, self.state, arg1) == loop) then
-      return loop() -- tail call eliminated? or should we use goto?
+      return loop() -- lua eliminates tail call, so there is no function call overhead here
     end
   end
   loop()
@@ -70,7 +70,7 @@ end
 
 function System:dispatch(action, event)
   for _, name in ipairs(self.names) do
-    local method = self.byName[name][action]
+    local method = self.byName[name][action] or self.byName[name].CATCHALL
     if method and method(self.byName[name], event, self.state) == false then
       break
     end
@@ -104,6 +104,7 @@ end
 
 function createWorld()
   local system = System()
+  system:add('fps', FPS())
   system:add('minimap', Minimap())
   system:add('pause', Pause())
   system:add('camera', Camera())
@@ -114,7 +115,6 @@ function createWorld()
   system:add('planting', Planting())
   system:add('player', PlayerControl())
   system:add('ui', AbsoluteUI())
-  system:add('fps', FPS())
   system:ready()
   return system
 end
