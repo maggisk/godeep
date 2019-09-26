@@ -152,6 +152,25 @@ function Drop:update(entity, dt)
   return self
 end
 
+local Harvest = Object:extend()
+function Harvest:new(player, target, entities)
+  self.target = target
+  self.entities = entities
+  self.move = Move(target.pos, player.radius + target.radius)
+end
+
+function Harvest:update(entity, dt)
+  self.move:update(entity, dt)
+  if self.move.done then
+    if self.target.harvested then self.target:harvested() end
+    local harvest = self.target.tags.provides(0, 0)
+    self.entities:add(harvest)
+    entity.inventory:add(harvest)
+    return getNext(self)
+  end
+  return self
+end
+
 local Timer = Object:extend()
 function Timer:new(duration, cmd)
   self.ttl = duration
@@ -197,5 +216,6 @@ return {
   Drop = Drop,
   Plant = Plant,
   Swing = Swing,
+  Harvest = Harvest,
   Timer = Timer,
 }

@@ -15,6 +15,9 @@ function WorldSystem:new()
   self.state.visibleEntities = {}
   self.state.hoveringEntity = nil
   self.state.world:generate()
+  for e, _ in pairs(self.state.entities.all) do
+    if e.atWorldCreation then e:atWorldCreation() end
+  end
 end
 
 function WorldSystem:update(next, state, dt)

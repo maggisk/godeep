@@ -68,4 +68,12 @@ function module.spawn(n, entity, cls)
   end
 end
 
+-- time constants to make things more readable
+module.time = {}
+module.time.second = 1
+module.time.minute = 60 * module.time.second
+module.time.hour   = 60 * module.time.minute
+module.time.day    = 24 * module.time.hour
+module.time.week   = 7  * module.time.day
+
 return module

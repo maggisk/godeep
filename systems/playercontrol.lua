@@ -13,6 +13,8 @@ function PlayerControl:MOUSEPRESSED(event, state)
       player.command = commands.Drop(player, player.inventory:getMouseItem(), event.world)
     elseif not state.world.hoveringEntity then
       player.command = commands.Move(Point(event.world.x, event.world.y), player.radius)
+    elseif state.world.hoveringEntity.hasHarvest then
+      player.command = commands.Harvest(state.world.player, state.world.hoveringEntity, state.world.entities)
     elseif rules.canPickUp(player, state.world.hoveringEntity) then
       player.command = commands.PickUp(state.world.hoveringEntity, player)
     elseif rules.canAttack(player, state.world.hoveringEntity) then

@@ -124,6 +124,7 @@ function World:generate()
   self:makeEntities(ent.Axe, AreaTypes.forest, 20)
   self:makeEntities(ent.PineCone, AreaTypes.forest, 100)
   self:makeEntities(ent.Bunny, AreaTypes.forest, 100)
+  self:makeEntities(ent.Bush, AreaTypes.grass, 100)
 end
 
 function World:minDistToAreaCenter(pos)
