@@ -5,8 +5,8 @@ local shaders = require "shaders"
 local World = require "world"
 local Point = require "point"
 
-local Entities = Object:extend()
-function Entities:new()
+local WorldSystem = Object:extend()
+function WorldSystem:new()
   self.state = self.state or {}
   self.state.world = World()
   self.state.entities = self.state.world.entities
@@ -17,7 +17,7 @@ function Entities:new()
   self.state.world:generate()
 end
 
-function Entities:update(next, state, dt)
+function WorldSystem:update(next, state, dt)
   self.state.entities:updateAll({dt = dt, entities = self.entities})
   self.state.entities:addNewEntities()
   self.state.entities:clearDead()
@@ -31,7 +31,7 @@ function Entities:update(next, state, dt)
   return next
 end
 
-function Entities:findHoveringEntity(entities, camera)
+function WorldSystem:findHoveringEntity(entities, camera)
   local x, y = love.mouse.getPosition()
   local mousePos = camera:screenToWorldPos(Point(x, y))
 
@@ -43,7 +43,7 @@ function Entities:findHoveringEntity(entities, camera)
   end
 end
 
-function Entities:draw(next)
+function WorldSystem:draw(next)
   self.state.world:draw()
   for _, entity in pairs(self.state.visibleEntities) do
     local hovering = (entity == self.state.hoveringEntity)
@@ -55,4 +55,4 @@ function Entities:draw(next)
   return next
 end
 
-return Entities
+return WorldSystem

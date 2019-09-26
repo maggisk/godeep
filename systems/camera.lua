@@ -9,7 +9,7 @@ function CameraSystem:new()
 end
 
 function CameraSystem:update(next, state, dt)
-  self.camera:follow(state.entities.player.pos)
+  self.camera:follow(state.world.player.pos)
   self.camera:update(dt)
   return next
 end

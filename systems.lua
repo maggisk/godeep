@@ -5,7 +5,7 @@ local util = require "util"
 local Pause = require "systems/pause"
 local Camera = require "systems/camera"
 local Planting = require "systems/planting"
-local Entities = require "systems/entities"
+local World = require "systems/world"
 local PlayerControl = require "systems/playercontrol"
 local GroundTexture = require "systems/groundtexture"
 local FPS = require "systems/fps"
@@ -88,7 +88,7 @@ end
 
 local Inventory = Object:extend()
 function Inventory:MOUSEPRESSED(event, state)
-  state.entities.player.inventory:processMouseEvent(event)
+  state.world.player.inventory:processMouseEvent(event)
   return not event.halted
 end
 
@@ -96,8 +96,8 @@ local AbsoluteUI = Object:extend()
 function AbsoluteUI:draw(next, state)
   love.graphics.push()
   love.graphics.origin()
-  state.entities.player.inventory:draw()
-  state.entities.player.speech:draw()
+  state.world.player.inventory:draw()
+  state.world.player.speech:draw()
   love.graphics.pop()
   next()
 end
@@ -109,7 +109,7 @@ function createWorld()
   system:add('camera', Camera())
   --system:add('ground', GroundTexture())
   system:add('inventory', Inventory())
-  system:add('entities', Entities())
+  system:add('world', World())
   system:add('bunnies', BunnyBehaviour())
   system:add('planting', Planting())
   system:add('player', PlayerControl())

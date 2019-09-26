@@ -7,9 +7,9 @@ local util = require "util"
 local Bunnies = Object:extend()
 
 function Bunnies:update(next, state, dt)
-  for bunny, _ in pairs(state.entities.entities:byTag("bunny")) do
+  for bunny, _ in pairs(state.world.entities:byTag("bunny")) do
     if bunny.command == commands.idle then
-      self:wander(bunny, state.entities.world)
+      self:wander(bunny, state.world.world)
     end
   end
 

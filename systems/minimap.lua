@@ -116,7 +116,7 @@ function Minimap:update(next, state, dt)
     self:maybeMove("y", -dt, y == 0     or love.keyboard.isDown("up", "w"))
     self:maybeMove("y",  dt, y == h - 1 or love.keyboard.isDown("down", "s"))
   else
-    self.fogofwar:reveal(state.entities.player.pos)
+    self.fogofwar:reveal(state.world.player.pos)
     return next
   end
 end
@@ -138,7 +138,7 @@ function Minimap:draw(next, state)
   love.graphics.translate(-self.state.pos.x + love.graphics.getWidth()  / 2 * self.state.zoom,
                           -self.state.pos.y + love.graphics.getHeight() / 2 * self.state.zoom)
 
-  state.entities.world:draw()
+  state.world.world:draw()
 
   for _, entity in ipairs(self.state.entities) do
     self:getImage(entity):draw(entity.pos)
@@ -172,7 +172,7 @@ function Minimap:KEYPRESSED(event, state)
     if self.state.isOpen then
       -- initialize state when user opens the minimap
       self.state.pos = state.camera.pos:copy()
-      self.state.entities = util.keys(state.entities.entities:byTag("minimap"))
+      self.state.entities = util.keys(state.world.entities:byTag("minimap"))
       table.sort(self.state.entities, function(a, b) return a.pos.y < b.pos.y end)
     end
   end

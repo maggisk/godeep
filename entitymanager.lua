@@ -63,7 +63,7 @@ end
 
 local EntityManager = Object:extend()
 function EntityManager:new()
-  self.entities = {}
+  self.all = {}
   self.entitiesByTag = {}
   self.buckets = Bucketer()
   self.maxEntityRadius = 0
@@ -74,11 +74,11 @@ function EntityManager:byTag(tag)
 end
 
 function EntityManager:add(entity)
-  assert(self.entities[entity] == nil, "can not add the same entity twice")
+  assert(self.all[entity] == nil, "can not add the same entity twice")
   self.buckets:add(entity)
   self.maxEntityRadius = math.max(self.maxEntityRadius, entity.radius or 0)
 
-  self.entities[entity] = entity
+  self.all[entity] = entity
   for tag, _ in pairs(entity.tags) do
     if self.entitiesByTag[tag] == nil then
       self.entitiesByTag[tag] = {}
@@ -88,10 +88,10 @@ function EntityManager:add(entity)
 end
 
 function EntityManager:remove(entity)
-  assert(self.entities[entity])
+  assert(self.all[entity])
   self.buckets:remove(entity)
 
-  self.entities[entity] = nil
+  self.all[entity] = nil
   for tag, _ in pairs(entity.tags) do
     assert(self.entitiesByTag[tag][entity])
     self.entitiesByTag[tag][entity] = nil
@@ -99,7 +99,7 @@ function EntityManager:remove(entity)
 end
 
 function EntityManager:clearDead()
-  for entity, _ in pairs(self.entities) do
+  for entity, _ in pairs(self.all) do
     if entity.dead then
       self:remove(entity)
     end
@@ -107,7 +107,7 @@ function EntityManager:clearDead()
 end
 
 function EntityManager:addNewEntities()
-  for entity, _ in pairs(self.entities) do
+  for entity, _ in pairs(self.all) do
     if entity.newEntities then
       while entity.newEntities[1] do
         self:add(table.remove(entity.newEntities))
@@ -117,7 +117,7 @@ function EntityManager:addNewEntities()
 end
 
 function EntityManager:updateAll(args)
-  for entity, _ in pairs(self.entities) do
+  for entity, _ in pairs(self.all) do
     if entity.update and not entity.dead and not entity.disabled then
       entity:update(args)
     end
@@ -147,7 +147,7 @@ end
 function EntityManager:findCollisions(entity, entities)
   local colliding = {}
 
-  for other, _ in pairs(entities or self.entities) do
+  for other, _ in pairs(entities or self.all) do
     if entity ~= other and isColliding(entity, other) then
       table.insert(colliding, other)
     end
@@ -160,7 +160,7 @@ function EntityManager:findVisibleEntitiesInRect(top, left, right, bottom, thres
   visibleEntities = {}
   threshold = threshold or 100
 
-  for e, _ in pairs(self.entities) do
+  for e, _ in pairs(self.all) do
     local image = e.image
     if not e.disabled and
        e.pos.x + threshold + image:getWidth() / 2 > left and
