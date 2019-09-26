@@ -52,6 +52,8 @@ end
 
 
 local World = Object:extend()
+World.AreaTypes = AreaTypes
+
 function World:new()
   self.entities = EntityManager()
   self.areas = {}
@@ -121,6 +123,7 @@ function World:generate()
   self:makeEntities(ent.Rock, AreaTypes.stone, love.math.random(300, 400))
   self:makeEntities(ent.Axe, AreaTypes.forest, 20)
   self:makeEntities(ent.PineCone, AreaTypes.forest, 100)
+  self:makeEntities(ent.Bunny, AreaTypes.forest, 100)
 end
 
 function World:minDistToAreaCenter(pos)

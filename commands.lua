@@ -152,6 +152,23 @@ function Drop:update(entity, dt)
   return self
 end
 
+local Timer = Object:extend()
+function Timer:new(duration, cmd)
+  self.ttl = duration
+  self.cmd = cmd
+end
+
+function Timer:update(entity, dt)
+  self.ttl = self.ttl - dt
+  if self.ttl < 0 then
+    return getNext(self)
+  end
+
+  self.cmd:update(entity, dt)
+  self.done = self.cmd.done
+  return maybeNext(self)
+end
+
 function tryGetTool(entity, slot)
   slot = slot or "hand"
   if entity.inventory and entity.inventory:get(slot) then
@@ -180,4 +197,5 @@ return {
   Drop = Drop,
   Plant = Plant,
   Swing = Swing,
+  Timer = Timer,
 }

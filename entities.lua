@@ -2,6 +2,7 @@ local entities = {
   Player = require "entities/player",
   Tree = require "entities/tree",
   Rock = require "entities/rock",
+  Bunny = require "entities/bunny",
 }
 
 for k, v in pairs(require("entities/simple_entities")) do

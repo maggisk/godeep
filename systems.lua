@@ -10,6 +10,7 @@ local PlayerControl = require "systems/playercontrol"
 local GroundTexture = require "systems/groundtexture"
 local FPS = require "systems/fps"
 local Minimap = require "systems/minimap"
+local BunnyBehaviour = require "systems/bunnybehaviour"
 
 -- love2d callbacks we need in the game
 local callbacks = {
@@ -109,6 +110,7 @@ function createWorld()
   --system:add('ground', GroundTexture())
   system:add('inventory', Inventory())
   system:add('entities', Entities())
+  system:add('bunnies', BunnyBehaviour())
   system:add('planting', Planting())
   system:add('player', PlayerControl())
   system:add('ui', AbsoluteUI())

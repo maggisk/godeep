@@ -1,9 +1,72 @@
 local Object = require "classic"
 
+function getOrSetEmpty(t, k)
+  if not t[k] then t[k] = {} end
+  return t[k]
+end
+
+function isColliding(a, b)
+  return (a.pos.x - b.pos.x)^2 + (a.pos.y - b.pos.y)^2 < (a.radius + b.radius)^2
+end
+
+local Bucketer = Object:extend()
+function Bucketer:new(gridSize)
+  self.buckets = {}
+  self.entityToBucket = {}
+  self.gridSize = gridSize or 100
+end
+
+function Bucketer:floor(n)
+  return math.floor(n / self.gridSize)
+end
+
+function Bucketer:getBucket(x, y)
+  local xBuckets = getOrSetEmpty(self.buckets, self:floor(x))
+  return getOrSetEmpty(xBuckets, self:floor(y))
+end
+
+function Bucketer:add(entity)
+  local bucket = self:getBucket(entity.pos.x, entity.pos.y)
+  bucket[entity] = entity.pos:copy()
+  self.entityToBucket[entity] = bucket
+end
+
+function Bucketer:remove(entity)
+  self.entityToBucket[entity][entity] = nil
+  self.entityToBucket[entity] = nil
+end
+
+function Bucketer:update()
+  for entity, bucket in pairs(self.entityToBucket) do
+    if not entity.pos:eq(bucket[entity]) then
+      self:remove(entity)
+      self:add(entity)
+    end
+  end
+end
+
+function Bucketer:findInBucketRadius(pos, radius)
+  local entities = {}
+
+  for x = self:floor(pos.x - radius), self:floor(pos.x + radius) do
+    for y = self:floor(pos.y - radius), self:floor(pos.y + radius) do
+      if self.buckets[x] and self.buckets[x][y] then
+        for entity, _ in pairs(self.buckets[x][y]) do
+          table.insert(entities, entity)
+        end
+      end
+    end
+  end
+
+  return entities
+end
+
 local EntityManager = Object:extend()
 function EntityManager:new()
   self.entities = {}
   self.entitiesByTag = {}
+  self.buckets = Bucketer()
+  self.maxEntityRadius = 0
 end
 
 function EntityManager:byTag(tag)
@@ -12,6 +75,9 @@ end
 
 function EntityManager:add(entity)
   assert(self.entities[entity] == nil, "can not add the same entity twice")
+  self.buckets:add(entity)
+  self.maxEntityRadius = math.max(self.maxEntityRadius, entity.radius or 0)
+
   self.entities[entity] = entity
   for tag, _ in pairs(entity.tags) do
     if self.entitiesByTag[tag] == nil then
@@ -23,6 +89,8 @@ end
 
 function EntityManager:remove(entity)
   assert(self.entities[entity])
+  self.buckets:remove(entity)
+
   self.entities[entity] = nil
   for tag, _ in pairs(entity.tags) do
     assert(self.entitiesByTag[tag][entity])
@@ -54,19 +122,22 @@ function EntityManager:updateAll(args)
       entity:update(args)
     end
   end
+  self.buckets:update()
 end
 
 function EntityManager:fixCollisions()
   for being, _ in pairs(self:byTag("alive")) do
-    for _, entity in ipairs(self:findCollisions(being, self:byTag("static"))) do
-      being.pos:subtract(entity.pos):setLength(being.radius + entity.radius):add(entity.pos)
+    for _, entity in ipairs(self.buckets:findInBucketRadius(being.pos, being.radius + self.maxEntityRadius)) do
+      if entity ~= being and isColliding(entity, being) then
+        being.pos:subtract(entity.pos):setLength(being.radius + entity.radius):add(entity.pos)
+      end
     end
   end
 end
 
-function EntityManager:canAddWithoutCollisions(entity, player, entities)
+function EntityManager:canAddWithoutCollisions(entity, exclude, entities)
   for _, other in ipairs(self:findCollisions(entity, entities)) do
-    if other ~= player and not other.disabled then
+    if other ~= exclude and not other.disabled then
       return false
     end
   end
@@ -77,13 +148,8 @@ function EntityManager:findCollisions(entity, entities)
   local colliding = {}
 
   for other, _ in pairs(entities or self.entities) do
-    if entity ~= other then
-      local r = other.radius + entity.radius
-      local xd = math.abs(other.pos.x - entity.pos.x)
-      local yd = math.abs(other.pos.y - entity.pos.y)
-      if xd < r and yd < r and math.sqrt(xd * xd + yd * yd) < r then
-        table.insert(colliding, other)
-      end
+    if entity ~= other and isColliding(entity, other) then
+      table.insert(colliding, other)
     end
   end
 
