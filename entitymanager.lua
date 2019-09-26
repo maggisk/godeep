@@ -136,24 +136,12 @@ function EntityManager:fixCollisions()
 end
 
 function EntityManager:canAddWithoutCollisions(entity, exclude, entities)
-  for _, other in ipairs(self:findCollisions(entity, entities)) do
-    if other ~= exclude and not other.disabled then
+  for _, other in ipairs(self.buckets:findInBucketRadius(entity.pos, entity.radius + self.maxEntityRadius)) do
+    if other ~= exclude and not other.disabled and isColliding(entity, other) then
       return false
     end
   end
   return true
-end
-
-function EntityManager:findCollisions(entity, entities)
-  local colliding = {}
-
-  for other, _ in pairs(entities or self.all) do
-    if entity ~= other and isColliding(entity, other) then
-      table.insert(colliding, other)
-    end
-  end
-
-  return colliding
 end
 
 function EntityManager:findVisibleEntitiesInRect(top, left, right, bottom, threshold)
