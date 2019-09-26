@@ -27,7 +27,7 @@ end
 
 function Bucketer:add(entity)
   local bucket = self:getBucket(entity.pos.x, entity.pos.y)
-  bucket[entity] = entity.pos:copy()
+  bucket[entity] = true
   self.entityToBucket[entity] = bucket
 end
 
@@ -38,9 +38,11 @@ end
 
 function Bucketer:update()
   for entity, bucket in pairs(self.entityToBucket) do
-    if not entity.pos:eq(bucket[entity]) then
-      self:remove(entity)
-      self:add(entity)
+    local newBucket = self:getBucket(entity.pos.x, entity.pos.y)
+    if bucket ~= newBucket then
+      bucket[entity] = nil
+      newBucket[entity] = true
+      self.entityToBucket[entity] = newBucket
     end
   end
 end
