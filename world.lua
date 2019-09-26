@@ -1,6 +1,7 @@
 local Object = require "classic"
 local Point = require "point"
 local util = require "util"
+local loveutil = require "loveutil"
 local ent = require "entities"
 local EntityManager = require "entitymanager"
 
@@ -61,6 +62,7 @@ end
 
 function World:draw()
   love.graphics.clear(0, 0.312, 0.48, 1)
+  local rollback = loveutil.snapshot("color", "linewidth")
 
   -- draw black border between ocean and land
   love.graphics.setColor(0, 0, 0, 1)
@@ -83,8 +85,7 @@ function World:draw()
     love.graphics.pop()
   end
 
-  love.graphics.setLineWidth(1)
-  love.graphics.setColor(1, 1, 1, 1)
+  rollback()
 end
 
 function World:generate()

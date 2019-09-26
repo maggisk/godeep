@@ -1,13 +1,9 @@
-local _graphics = {}
+local loveProperties = {}
 
-for k, v in pairs(love.graphics) do
-  if type(v) == "function" then
-    if k:sub(1, 3) == "get" and love.graphics["set" .. k:sub(4, -1)] then
-      _graphics[k:sub(4, -1):lower()] = {
-        get = v,
-        set = love.graphics["set" .. k:sub(4, -1)],
-      }
-    end
+for name, getter in pairs(love.graphics) do
+  local setter = love.graphics["set" .. name:sub(4, -1)]
+  if name:sub(1, 3) == "get" and type(getter) == "function" and type(setter) == "function" then
+    loveProperties[name:sub(4, -1):lower()] = {get = getter, set = setter}
   end
 end
 
@@ -18,13 +14,13 @@ end
 local function snapshot(...)
   local state = {}
   for _, k in ipairs({...}) do
-    state[k] = pack(_graphics[k].get())
+    state[k] = pack(loveProperties[k].get())
   end
 
   return function()
     for k, v in pairs(state) do
       assert(#v <= 6)
-      _graphics[k].set(v[1], v[2], v[3], v[4], v[5], v[6])
+      loveProperties[k].set(v[1], v[2], v[3], v[4], v[5], v[6])
     end
   end
 end
@@ -43,8 +39,6 @@ local function copyCanvas(original)
 end
 
 return {
-  graphics = {
-    snapshot = snapshot,
-    copyCanvas = copyCanvas,
-  },
+  snapshot = snapshot,
+  copyCanvas = copyCanvas,
 }

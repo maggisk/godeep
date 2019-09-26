@@ -52,14 +52,14 @@ function FogOfWar:reveal(pos)
   local maxY = self:floor(pos.y + radius)
 
   -- and render transparency into canvases that are in range or the player
-  local reset = loveutil.graphics.snapshot("canvas", "blendmode", "color")
+  local rollback = loveutil.snapshot("canvas", "blendmode", "color")
   for cx = minX, maxX, FOG_CANVAS_SIZE do
     for cy = minY, maxY, FOG_CANVAS_SIZE do
       love.graphics.setCanvas(self:getCanvas(cx, cy))
       love.graphics.setBlendMode("replace")
       love.graphics.setColor(0, 0, 0, 0)
       love.graphics.circle("fill", x - cx + canvasX, y - cy + canvasY, radius)
-      reset()
+      rollback()
     end
   end
 end
@@ -81,13 +81,13 @@ end
 function FogOfWar:getCanvas(x, y, default)
   local k = x .. '_' .. y
   if not self.canvases[k] and not default then
-    self.canvases[k] = loveutil.graphics.copyCanvas(self.blankCanvas)
+    self.canvases[k] = loveutil.copyCanvas(self.blankCanvas)
   end
   return self.canvases[k] or default
 end
 
 function FogOfWar:createCanvas()
-  local reset = loveutil.graphics.snapshot("canvas", "color", "linewidth")
+  local rollback = loveutil.snapshot("canvas", "color", "linewidth")
   local canvas = love.graphics.newCanvas(FOG_CANVAS_SIZE, FOG_CANVAS_SIZE)
   love.graphics.setCanvas(canvas)
   love.graphics.setColor(0.08, 0.08, 0.08, 1)
@@ -96,7 +96,7 @@ function FogOfWar:createCanvas()
   love.graphics.setLineWidth(5)
   love.graphics.line(0, 0, FOG_CANVAS_SIZE, FOG_CANVAS_SIZE)
   love.graphics.line(FOG_CANVAS_SIZE, 0, 0, FOG_CANVAS_SIZE)
-  reset()
+  rollback()
   return canvas
 end
 

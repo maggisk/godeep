@@ -24,9 +24,10 @@ end
 
 function Planting:draw(next)
   if self.entity and self.canPlant then
+    local r, g, b, a = love.graphics.getColor()
     love.graphics.setColor(1, 1, 1, 0.8)
     self.entity:draw()
-    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.setColor(r, g, b, a)
   end
   return next
 end

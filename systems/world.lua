@@ -48,11 +48,13 @@ end
 
 function WorldSystem:draw(next)
   self.state.world:draw()
+  local shader = love.graphics.getShader()
+
   for _, entity in pairs(self.state.visibleEntities) do
     local hovering = (entity == self.state.hoveringEntity)
     if hovering then love.graphics.setShader(shaders.brighten) end
     entity:draw()
-    if hovering then love.graphics.setShader() end
+    if hovering then love.graphics.setShader(shader) end
   end
 
   return next

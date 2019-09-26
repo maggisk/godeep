@@ -16,7 +16,7 @@ end
 function Pause:draw(next)
   next()
   if self.state.isPaused then
-    local reset = loveutil.graphics.snapshot("color", "font")
+    local rollback = loveutil.snapshot("color", "font")
 
     local sw, sh = love.graphics.getDimensions()
     love.graphics.setColor({0, 0, 0, 0.6})
@@ -28,7 +28,7 @@ function Pause:draw(next)
     local th = self.font:getHeight()
     love.graphics.print("PAUSED", (sw - tw) / 2, (sh - th) / 2)
 
-    reset()
+    rollback()
   end
 end
 

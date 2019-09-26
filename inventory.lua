@@ -1,7 +1,8 @@
-local U = require "underscore"
 local UIBox = require "uibox"
 local Point = require "point"
 local rules = require "gamerules"
+local util = require "util"
+local loveutil = require "loveutil"
 local Object = require "classic"
 
 local HEIGHT = 60
@@ -37,7 +38,7 @@ end
 
 function Inventory:_addBox(slotKey)
   slotKey = slotKey or #self.uiboxes + 1
-  self.uiboxes[slotKey] = UIBox(self.bar, #U.keys(self.uiboxes) * HEIGHT, PADDING, HEIGHT - PADDING * 2, HEIGHT - PADDING * 2, {
+  self.uiboxes[slotKey] = UIBox(self.bar, util.count(self.uiboxes) * HEIGHT, PADDING, HEIGHT - PADDING * 2, HEIGHT - PADDING * 2, {
     slot = slotKey,
     color = {1, 1, 1, 1},
     mousepressed = function(e, box) self:handleSlotClick(e, slotKey) end,
@@ -169,6 +170,7 @@ function Inventory:draw()
 end
 
 function Inventory:drawSticky()
+  local r, g, b, a = love.graphics.getColor()
   -- background
   love.graphics.setColor(0, 0, 0, 1)
   love.graphics.rectangle("fill", 0, 0, self.bar.width, self.bar.height)
@@ -177,13 +179,13 @@ function Inventory:drawSticky()
   love.graphics.setColor(51/255, 76/255, 122/255, 1)
   love.graphics.rectangle("fill", 0, HEIGHT - 5, self.bar.width * (self:getWeight() / self.capacity), 5)
 
-  love.graphics.setColor(1, 1, 1, 1)
+  love.graphics.setColor(r, g, b, a)
 end
 
 local font = love.graphics.newFont(20)
 
 function Inventory:drawSlot(slot)
-  local origFont = love.graphics.getFont()
+  local rollback = loveutil.snapshot("font", "color")
   local item = self.state.slots[slot]
   local box = self.uiboxes[slot]
 
@@ -193,18 +195,19 @@ function Inventory:drawSlot(slot)
       if durability == 0 then durability = 1 end
       love.graphics.setColor(39/255, 174/255, 96/255, 1)
       love.graphics.rectangle("fill", 0, (1 - durability) * box.height, box.width, durability * box.height)
-      love.graphics.setColor(1, 1, 1, 1)
     end
     item.image:draw(Point(30, 40))
     if not item.tags.wearable then
       love.graphics.setFont(font)
+      love.graphics.setColor(0, 0, 0, 1)
       love.graphics.print({{0, 0, 0, 1}, item.count or 1}, 2, 2)
-      love.graphics.setFont(origFont)
     end
   elseif type(slot) == "string" then
     -- TODO: use icons
     love.graphics.print({{0, 0, 0, 1}, slot}, 15, 5, 0.8)
   end
+
+  rollback()
 end
 
 return Inventory

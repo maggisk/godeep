@@ -1,6 +1,6 @@
 local easing = require "easing"
 local Object = require "classic"
-local SpeechBubble = Object:extend()
+local loveutil = require "loveutil"
 
 local font = love.graphics.newFont(20)
 
@@ -9,6 +9,7 @@ local SHAKE_DISTANCE = 10
 local SHAKE_DURATION = 0.4
 local SHAKE_COUNT = 2
 
+local SpeechBubble = Object:extend()
 function SpeechBubble:new()
   self.text = ""
   self.ttl = -1
@@ -35,12 +36,12 @@ function SpeechBubble:draw()
   if self.ttl < 0 then return end
 
   love.graphics.push()
+  local rollback = loveutil.snapshot("font", "color")
 
   if self.shake then
     love.graphics.translate(SHAKE_DISTANCE * easing.shake(SHAKE_COUNT, self.duration, SHAKE_DURATION), 0)
   end
 
-  local origFont = love.graphics.getFont()
   love.graphics.setFont(font)
   local textWidth = font:getWidth(self.text)
   local textHeight = font:getHeight()
@@ -52,8 +53,8 @@ function SpeechBubble:draw()
   love.graphics.polygon("fill", w / 2 - 10, y + textHeight + 10,  w / 2 + 10, y + textHeight + 10, w / 2, y + textHeight + 20)
   love.graphics.setColor(1, 1, 1, 1)
   love.graphics.print(self.text, x, y)
-  love.graphics.setFont(origFont)
 
+  rollback()
   love.graphics.pop()
 end
 

@@ -16,6 +16,14 @@ function module.keys(t)
   return keys
 end
 
+function module.count(t)
+  local c = 0
+  for a, b in pairs(t) do
+    c = c + 1
+  end
+  return c
+end
+
 function module.ifilter(t, fn)
   local r = {}
   for i, v in ipairs(t) do
