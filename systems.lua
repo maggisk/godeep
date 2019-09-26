@@ -58,7 +58,8 @@ end
 
 function System:callSubsystems(methodName, arg1)
   local i = 0
-  function loop()
+  local loop
+  loop = function()
     i = i + 1
     local system = self.byName[self.names[i]]
     if system and (not system[methodName] or system[methodName](system, loop, self.state, arg1) == loop) then
@@ -112,7 +113,7 @@ function AbsoluteUI:draw(next, state)
   next()
 end
 
-function createWorld()
+local function createWorld()
   local system = System()
   system:add('fps', FPS())
   system:add('minimap', Minimap())

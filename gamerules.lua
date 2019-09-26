@@ -2,7 +2,7 @@ local util = require "util"
 
 local module = {}
 
-function kill(entity)
+local function kill(entity)
   -- call the entity's die method if it has one
   if entity.die then
     entity:die()
@@ -14,7 +14,7 @@ function kill(entity)
   end
 end
 
-function flattenTags(entity)
+local function flattenTags(entity)
   local tags = {}
 
   for key, value in pairs(entity.tags) do
@@ -35,7 +35,7 @@ function flattenTags(entity)
   return tags
 end
 
-function findDamageDealer(a, b)
+local function findDamageDealer(a, b)
   local match = {value = -math.huge}
 
   for _, tag in ipairs(flattenTags(a)) do

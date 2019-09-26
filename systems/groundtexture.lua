@@ -5,6 +5,19 @@ local SQR_SIZE = 15
 local CANVAS_SIZE = SQR_SIZE * 10
 local BLUR_RADIUS = 10
 
+local function mkKey(x, y)
+  return x .. '-' .. y
+end
+
+local function findTopLeft(center)
+  local w, h = love.graphics.getDimensions()
+  local left = math.floor(center.x - w / 2)
+  left = left - (left % CANVAS_SIZE)
+  local top = math.floor(center.y - h / 2)
+  top = top - (top % CANVAS_SIZE)
+  return top, left
+end
+
 local GroundTexture = Object:extend()
 function GroundTexture:new()
   self.canvases = {}
@@ -75,19 +88,6 @@ function GroundTexture:createCanvas(xStart, yStart)
   love.graphics.pop()
 
   return blurredCanvas
-end
-
-function mkKey(x, y)
-  return x .. '-' .. y
-end
-
-function findTopLeft(center)
-  local w, h = love.graphics.getDimensions()
-  local left = math.floor(center.x - w / 2)
-  left = left - (left % CANVAS_SIZE)
-  local top = math.floor(center.y - h / 2)
-  top = top - (top % CANVAS_SIZE)
-  return top, left
 end
 
 return GroundTexture

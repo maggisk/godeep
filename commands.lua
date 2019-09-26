@@ -5,7 +5,7 @@ local rules = require "gamerules"
 local idle
 idle = {update = function() return idle end}
 
-function chain(first, ...)
+local function chain(first, ...)
   local cmd = first
   for _, nextcmd in ipairs({...}) do
     cmd._next = nextcmd
@@ -14,13 +14,31 @@ function chain(first, ...)
   return first
 end
 
-function maybeNext(cmd)
+local function getNext(cmd)
+  return cmd._next or idle
+end
+
+local function maybeNext(cmd)
   if cmd.done then return getNext(cmd) end
   return cmd
 end
 
-function getNext(cmd)
-  return cmd._next or idle
+local function tryGetTool(entity, slot)
+  slot = slot or "hand"
+  if entity.inventory and entity.inventory:get(slot) then
+    return entity.inventory:get(slot)
+  end
+  return entity
+end
+
+local function moveCloserTo(entity, target, distance)
+  if entity.pos:distanceTo(target) > distance then
+    entity.pos:add(target:copy():subtract(entity.pos):setLength(distance))
+    return false -- not there yet
+  else
+    entity.pos:set(target)
+    return true -- we're there
+  end
 end
 
 local Move = Object:extend()
@@ -186,24 +204,6 @@ function Timer:update(entity, dt)
   self.cmd:update(entity, dt)
   self.done = self.cmd.done
   return maybeNext(self)
-end
-
-function tryGetTool(entity, slot)
-  slot = slot or "hand"
-  if entity.inventory and entity.inventory:get(slot) then
-    return entity.inventory:get(slot)
-  end
-  return entity
-end
-
-function moveCloserTo(entity, target, distance)
-  if entity.pos:distanceTo(target) > distance then
-    entity.pos:add(target:copy():subtract(entity.pos):setLength(distance))
-    return false -- not there yet
-  else
-    entity.pos:set(target)
-    return true -- we're there
-  end
 end
 
 return {

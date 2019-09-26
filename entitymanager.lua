@@ -1,11 +1,11 @@
 local Object = require "classic"
 
-function getOrSetEmpty(t, k)
+local function getOrSetEmpty(t, k)
   if not t[k] then t[k] = {} end
   return t[k]
 end
 
-function isColliding(a, b)
+local function isColliding(a, b)
   return (a.pos.x - b.pos.x)^2 + (a.pos.y - b.pos.y)^2 < (a.radius + b.radius)^2
 end
 
@@ -145,8 +145,8 @@ function EntityManager:canAddWithoutCollisions(entity, exclude, entities)
 end
 
 function EntityManager:findVisibleEntitiesInRect(top, left, right, bottom, threshold)
-  visibleEntities = {}
-  threshold = threshold or 100
+  local visibleEntities = {}
+ threshold = threshold or 100
 
   for e, _ in pairs(self.all) do
     local image = e.image

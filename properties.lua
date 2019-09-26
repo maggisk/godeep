@@ -1,4 +1,4 @@
-function getters(cls, getters)
+local function getters(cls, getters)
   cls.__index = function(obj, k)
     if getters[k] then return obj[getters[k]](obj) end
     -- TODO: this is poorly tested with inheritance

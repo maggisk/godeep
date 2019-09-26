@@ -47,13 +47,11 @@ function Point:multiply(ratio)
 end
 
 function Point:distanceTo(other)
-  diffX = self.x - other.x
-  diffY = self.y - other.y
-  return math.sqrt(diffX * diffX + diffY * diffY)
+  return math.sqrt((self.x - other.x)^2 + (self.y - other.y)^2)
 end
 
 function Point:rotate(rad)
-  x, y = self.x, self.y
+  local x, y = self.x, self.y
   self.x = x * math.cos(rad) - y * math.sin(rad)
   self.y = x * math.sin(rad) + y * math.cos(rad)
   return self

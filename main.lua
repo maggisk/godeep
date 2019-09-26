@@ -1,7 +1,9 @@
+local strict = require "strict"
+
 function love.load(args)
   local util = require "util"
 
-  DEBUG = util.hasValue(args, "--debug")
+  rawset(_G, "DEBUG", util.hasValue(args, "--debug"))
 
   love.window.setMode(1280, 720)
   love.window.setFullscreen(not util.hasValue(args, "--fullscreen=false"), "exclusive")

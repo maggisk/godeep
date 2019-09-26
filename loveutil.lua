@@ -11,11 +11,11 @@ for k, v in pairs(love.graphics) do
   end
 end
 
-function pack(...)
+local function pack(...)
   return {...}
 end
 
-function snapshot(...)
+local function snapshot(...)
   local state = {}
   for _, k in ipairs({...}) do
     state[k] = pack(_graphics[k].get())
@@ -30,7 +30,7 @@ function snapshot(...)
 end
 
 -- returns a new canvas identical to the given one. is there an easier way to do this?
-function copyCanvas(original)
+local function copyCanvas(original)
   love.graphics.push()
   love.graphics.origin()
   local prev = love.graphics.getCanvas()
