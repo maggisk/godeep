@@ -2,15 +2,6 @@ local Object = require "classic"
 local Point = require "point"
 local Event = require "event"
 local util = require "util"
-local Pause = require "systems/pause"
-local Camera = require "systems/camera"
-local Planting = require "systems/planting"
-local World = require "systems/world"
-local PlayerControl = require "systems/playercontrol"
-local GroundTexture = require "systems/groundtexture"
-local FPS = require "systems/fps"
-local Minimap = require "systems/minimap"
-local BunnyBehaviour = require "systems/bunnybehaviour"
 
 -- love2d callbacks we need in the game
 local callbacks = {
@@ -43,7 +34,7 @@ end
 function System:ready()
   for _, name in ipairs(self.names) do
     if self.byName[name].init then
-      self.byName[name]:init()
+      self.byName[name]:init(self.state)
     end
   end
 end
@@ -113,8 +104,22 @@ function AbsoluteUI:draw(next, state)
   next()
 end
 
+local SplashScreen = require "splashscreen"
+local Pause = require "systems/pause"
+local Camera = require "systems/camera"
+local Planting = require "systems/planting"
+local World = require "systems/world"
+local PlayerControl = require "systems/playercontrol"
+local GroundTexture = require "systems/groundtexture"
+local FPS = require "systems/fps"
+local Minimap = require "systems/minimap"
+local BunnyBehaviour = require "systems/bunnybehaviour"
+
 local function createWorld()
   local system = System()
+  if not DEBUG then
+    system:add('splashscreen', SplashScreen())
+  end
   system:add('fps', FPS())
   system:add('minimap', Minimap())
   system:add('pause', Pause())

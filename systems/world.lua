@@ -12,12 +12,15 @@ function WorldSystem:new()
   self.state.entities = self.state.world.entities
   self.state.player = ent.Player(0, 0)
   self.state.entities:add(self.state.player)
-  self.state.visibleEntities = {}
-  self.state.hoveringEntity = nil
   self.state.world:generate()
   for e, _ in pairs(self.state.entities.all) do
     if e.atWorldCreation then e:atWorldCreation() end
   end
+end
+
+function WorldSystem:init(state)
+  self.state.visibleEntities = self.state.entities:findVisibleEntitiesInRect(state.camera:visibleRect())
+  self.state.hoveringEntity = self:findHoveringEntity(self.state.visibleEntities, state.camera)
 end
 
 function WorldSystem:update(next, state, dt)
