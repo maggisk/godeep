@@ -58,9 +58,26 @@ World.AreaTypes = AreaTypes
 function World:new()
   self.entities = EntityManager()
   self.areas = {}
+
+  local r, g, b, a = love.graphics.getColor()
+
+  self.texture = love.graphics.newCanvas(1000, 1000)
+  self.texture:renderTo(function()
+    for x = 0, 999 do
+      for y = 0, 999 do
+        local xn = math.abs(x - 500) / 40
+        local yn = math.abs(y - 500) / 40
+
+        love.graphics.setColor(0, 0, 0, 0.1 + 0.2 * love.math.noise(xn, yn, xn, yn))
+        love.graphics.points(x+0.5, y+0.5)
+      end
+    end
+  end)
+
+  love.graphics.setColor(r, g, b, a)
 end
 
-function World:draw()
+function World:draw(left, right, top, bottom)
   love.graphics.clear(0, 0.312, 0.48, 1)
   local rollback = loveutil.snapshot("color", "linewidth")
 
@@ -74,15 +91,33 @@ function World:draw()
     love.graphics.pop()
   end
 
-  -- draw the ground
-  for _, area in ipairs(self.areas) do
-    love.graphics.push()
-    love.graphics.translate(area.pos.x, area.pos.y)
-    love.graphics.setColor(area.type)
-    for _, polygon in ipairs(area.polygons) do
-      love.graphics.polygon("fill", polygon)
+  local function drawGround()
+    -- draw ground area
+    for _, area in ipairs(self.areas) do
+      love.graphics.push()
+      love.graphics.translate(area.pos.x, area.pos.y)
+      love.graphics.setColor(area.type)
+      for _, polygon in ipairs(area.polygons) do
+        love.graphics.polygon("fill", polygon)
+      end
+      love.graphics.pop()
     end
-    love.graphics.pop()
+  end
+
+  drawGround()
+
+  if left and right and top and bottom then
+    love.graphics.stencil(drawGround, "replace", 1)
+    love.graphics.setStencilTest("greater", 0)
+
+    love.graphics.setColor(1, 1, 1, 1)
+    for x = math.floor(left / 1000), math.floor(right / 1000) do
+      for y = math.floor(top / 1000), math.floor(bottom / 1000) do
+        love.graphics.draw(self.texture, x * 1000, y * 1000)
+      end
+    end
+
+    love.graphics.setStencilTest()
   end
 
   rollback()

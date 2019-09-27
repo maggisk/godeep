@@ -45,8 +45,8 @@ function WorldSystem:findHoveringEntity(entities, camera)
   end
 end
 
-function WorldSystem:draw(next)
-  self.state.world:draw()
+function WorldSystem:draw(next, state)
+  self.state.world:draw(state.camera:visibleRect())
   local shader = love.graphics.getShader()
 
   for _, entity in pairs(self.state.visibleEntities) do
