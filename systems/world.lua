@@ -28,8 +28,7 @@ function WorldSystem:update(next, state, dt)
   for entity, _ in pairs(self.state.entities:byTag("alive")) do
     self.state.world:contain(entity)
   end
-  local left, top, right, bottom = state.camera:visibleRect()
-  self.state.visibleEntities = self.state.entities:findVisibleEntitiesInRect(top, left, right, bottom)
+  self.state.visibleEntities = self.state.entities:findVisibleEntitiesInRect(state.camera:visibleRect())
   self.state.hoveringEntity = self:findHoveringEntity(self.state.visibleEntities, state.camera)
   return next
 end

@@ -130,7 +130,7 @@ end
 function EntityManager:fixCollisions()
   for being, _ in pairs(self:byTag("alive")) do
     for _, entity in ipairs(self.buckets:findInBucketRadius(being.pos, being.radius + self.maxEntityRadius)) do
-      if entity ~= being and isColliding(entity, being) then
+      if entity ~= being and entity.tags.static and isColliding(entity, being) then
         being.pos:subtract(entity.pos):setLength(being.radius + entity.radius):add(entity.pos)
       end
     end
@@ -146,17 +146,14 @@ function EntityManager:canAddWithoutCollisions(entity, exclude, entities)
   return true
 end
 
-function EntityManager:findVisibleEntitiesInRect(top, left, right, bottom, threshold)
+function EntityManager:findVisibleEntitiesInRect(left, right, top, bottom)
   local visibleEntities = {}
- threshold = threshold or 100
 
   for e, _ in pairs(self.all) do
-    local image = e.image
-    if not e.disabled and
-       e.pos.x + threshold + image:getWidth() / 2 > left and
-       e.pos.x - threshold - image:getWidth() / 2 < right and
-       e.pos.y + threshold > top and
-       e.pos.y - threshold - image:getHeight() then
+    local img = e.image
+    local w, h = img:getWidth(), img:getHeight()
+    local x, y = e.pos.x + img.offsetX * img.ratio, e.pos.y + img.offsetY * img.ratio
+    if not e.disabled and x + w / 2 > left and x - w / 2 < right and y > top and y - h < bottom then
       table.insert(visibleEntities, e)
     end
   end

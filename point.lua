@@ -31,7 +31,7 @@ function Point:subtract(other)
 end
 
 function Point:length()
-  return math.sqrt(self.x * self.x + self.y * self.y)
+  return math.sqrt(self.x^2 + self.y^2)
 end
 
 function Point:setLength(length)

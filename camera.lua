@@ -25,7 +25,7 @@ end
 
 function Camera:visibleRect()
   local w, h = love.graphics.getDimensions()
-  return self.pos.x - w / 2, self.pos.y - h / 2, self.pos.x + w / 2, self.pos.y + h / 2
+  return self.pos.x - w / 2, self.pos.x + w / 2, self.pos.y - h / 2, self.pos.y + h / 2
 end
 
 return Camera
