@@ -1,4 +1,4 @@
-local strict = require "strict"
+require "strict"
 
 function love.load(args)
   local util = require "util"
