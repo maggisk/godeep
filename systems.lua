@@ -110,7 +110,6 @@ local Camera = require "systems/camera"
 local Planting = require "systems/planting"
 local World = require "systems/world"
 local PlayerControl = require "systems/playercontrol"
-local GroundTexture = require "systems/groundtexture"
 local FPS = require "systems/fps"
 local Minimap = require "systems/minimap"
 local BunnyBehaviour = require "systems/bunnybehaviour"
@@ -124,7 +123,6 @@ local function createWorld()
   system:add('minimap', Minimap())
   system:add('pause', Pause())
   system:add('camera', Camera())
-  --system:add('ground', GroundTexture())
   system:add('inventory', Inventory())
   system:add('world', World())
   system:add('bunnies', BunnyBehaviour())

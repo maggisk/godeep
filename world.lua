@@ -58,15 +58,37 @@ World.AreaTypes = AreaTypes
 function World:new()
   self.entities = EntityManager()
   self.areas = {}
+
+  local rollback = loveutil.snapshot("color", "canvas")
+  self.texture = love.graphics.newCanvas(1000, 1000)
+  love.graphics.setCanvas(self.texture)
+
+  -- based on https://www.gamedev.net/blogs/entry/2138456-seamless-noise/
+  local w, h = self.texture:getDimensions()
+  local x1, x2 = 0, 50
+  local y1, y2 = 0, 150
+  for x = 0, w - 1 do
+    for y = 0, h - 1 do
+      local nx = x1 + math.cos(x / w * 2 * math.pi) * (x2 - x1) / (2 * math.pi)
+      local ny = y1 + math.cos(y / h * 2 * math.pi) * (y2 - y1) / (2 * math.pi)
+      local nz = x1 + math.sin(x / w * 2 * math.pi) * (x2 - x1) / (2 * math.pi)
+      local nw = y1 + math.sin(y / h * 2 * math.pi) * (y2 - y1) / (2 * math.pi)
+
+      love.graphics.setColor(0, 0, 0, 0.2 * love.math.noise(nx, ny, nz, nw))
+      love.graphics.points(x + 0.5, y + 0.5)
+    end
+  end
+
+  rollback()
 end
 
-function World:draw()
+function World:draw(left, right, top, bottom)
   love.graphics.clear(0, 0.312, 0.48, 1)
   local rollback = loveutil.snapshot("color", "linewidth")
 
   -- draw black border between ocean and land
   love.graphics.setColor(0, 0, 0, 1)
-  love.graphics.setLineWidth(10)
+  love.graphics.setLineWidth(6)
   for _, area in ipairs(self.areas) do
     love.graphics.push()
     love.graphics.translate(area.pos.x, area.pos.y)
@@ -74,15 +96,33 @@ function World:draw()
     love.graphics.pop()
   end
 
-  -- draw the ground
-  for _, area in ipairs(self.areas) do
-    love.graphics.push()
-    love.graphics.translate(area.pos.x, area.pos.y)
-    love.graphics.setColor(area.type)
-    for _, polygon in ipairs(area.polygons) do
-      love.graphics.polygon("fill", polygon)
+  local function drawGround()
+    -- draw ground area
+    for _, area in ipairs(self.areas) do
+      love.graphics.push()
+      love.graphics.translate(area.pos.x, area.pos.y)
+      love.graphics.setColor(area.type)
+      for _, polygon in ipairs(area.polygons) do
+        love.graphics.polygon("fill", polygon)
+      end
+      love.graphics.pop()
     end
-    love.graphics.pop()
+  end
+
+  drawGround()
+
+  if left and right and top and bottom then
+    love.graphics.stencil(drawGround, "replace", 1)
+    love.graphics.setStencilTest("greater", 0)
+    love.graphics.setColor(1, 1, 1, 1)
+
+    for x = math.floor(left / 1000), math.floor(right / 1000) do
+      for y = math.floor(top / 1000), math.floor(bottom / 1000) do
+        love.graphics.draw(self.texture, x * 1000, y * 1000)
+      end
+    end
+
+    love.graphics.setStencilTest()
   end
 
   rollback()
